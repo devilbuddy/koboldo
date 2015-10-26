@@ -12,11 +12,11 @@ use sdl2::surface::Surface;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 
-mod tiles;
-mod grid;
+mod motor;
+use motor::grid::*;
 
+mod tiles;
 use tiles::*;
-use grid::*;
 
 struct Point {
     pub x : i32,
@@ -59,10 +59,7 @@ pub fn main() {
 
     let mut renderer = window.renderer().build().unwrap();
     renderer.set_draw_color(Color::RGB(0, 0, 0));
-    match renderer.set_logical_size(200, 150) {
-        Ok(_) => {},
-        Err(err) => panic!("Failed to set logical size: {}", err)
-    };
+    renderer.set_logical_size(200, 150).unwrap();
 
     let texture = renderer.load_texture(&Path::new("assets/level_assets.png")).unwrap();
     let monster_texture = renderer.load_texture(&Path::new("assets/monster_assets.png")).unwrap();
@@ -78,10 +75,7 @@ pub fn main() {
     grid.set(2, 1, Cell::new());
 
     let entity = Entity { position : Point { x: 0, y: 0}};
-    match grid.get_mut(0, 0) {
-        Some(cell) => cell.set_entity(entity),
-        _ => {}
-    }
+    grid.get_mut(0, 0).unwrap().set_entity(entity);
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
