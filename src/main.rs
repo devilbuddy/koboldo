@@ -8,43 +8,17 @@ use sdl2_image::{LoadTexture, INIT_PNG};
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::surface::Surface;
 use sdl2::rect::Rect;
-use sdl2::render::{Renderer, Texture};
 
 mod motor;
 use motor::grid::*;
 
 mod tiles;
+mod render;
+mod world;
+
 use tiles::*;
-
-struct Point {
-    pub x : i32,
-    pub y : i32
-}
-
-struct Entity {
-    pub position : Point
-}
-
-
-struct Cell {
-    tile : Tile,
-    pub entity : Option<Entity>
-}
-
-impl Cell {
-    pub fn new() -> Cell {
-        Cell {
-            tile : Tile::Grass,
-            entity : None
-        }
-    }
-
-    pub fn set_entity(&mut self, entity : Entity) {
-        self.entity = Some(entity);
-    }
-}
+use world::*;
 
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -103,23 +77,7 @@ pub fn main() {
         renderer.clear();
 
         // render grid
-        for y in 0..grid.height {
-            for x in 0..grid.width {
-                match grid.get(x, y) {
-                    Some(cell) => {
-
-                        let t = &cell.tile;
-                        let texture_region = tile_set.get_texture_region(&t).expect("No texture region for tile");
-                        let dst_rect = Rect::new_unwrap(x as i32 * 8, y as i32 * 8, 8, 8);
-                        renderer.copy(&tile_set.texture, Some(texture_region.bounds), Some(dst_rect));
-
-                        let e = &cell.entity;
-
-                    },
-                    _ => {}
-                };
-            }
-        }
+        render::render_grid(&mut renderer, &grid, &tile_set);
 
         renderer.present();
     }

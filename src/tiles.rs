@@ -3,11 +3,7 @@ use sdl2::render::{Renderer, Texture};
 
 use std::collections::HashMap;
 
-#[derive(PartialEq, Eq, Hash)]
-pub enum Tile {
-    Grass,
-    Water
-}
+use world::Tile;
 
 pub struct TileSet {
     pub texture : Texture,
