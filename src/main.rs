@@ -20,6 +20,21 @@ mod world;
 use tiles::*;
 use world::*;
 
+/*
+struct Screen {
+
+}
+
+impl View for Screen {
+
+}
+*/
+
+
+use sdl2::render::{Renderer, Texture};
+
+
+
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -31,12 +46,13 @@ pub fn main() {
         .build()
         .unwrap();
 
-    let mut renderer = window.renderer().build().unwrap();
-    renderer.set_draw_color(Color::RGB(0, 0, 0));
-    renderer.set_logical_size(200, 150).unwrap();
+    let mut motor_context = motor::MotorContext::new(window.renderer().build().unwrap());
 
-    let texture = renderer.load_texture(&Path::new("assets/level_assets.png")).unwrap();
-    let monster_texture = renderer.load_texture(&Path::new("assets/monster_assets.png")).unwrap();
+    motor_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
+    motor_context.renderer.set_logical_size(200, 150).unwrap();
+
+    let texture = motor_context.renderer.load_texture(&Path::new("assets/level_assets.png")).unwrap();
+    let monster_texture = motor_context.renderer.load_texture(&Path::new("assets/monster_assets.png")).unwrap();
 
     let mut tile_set = TileSet::new(texture);
     tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
@@ -74,11 +90,8 @@ pub fn main() {
         }
 
         // The rest of the game loop goes here...
-        renderer.clear();
-
-        // render grid
-        render::render_grid(&mut renderer, &grid, &tile_set);
-
-        renderer.present();
+        motor_context.renderer.clear();
+        render::render_grid(&mut motor_context.renderer, &grid, &tile_set);
+        motor_context.renderer.present();
     }
 }
