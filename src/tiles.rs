@@ -1,5 +1,5 @@
 use sdl2::rect::Rect;
-use sdl2::render::{Renderer, Texture};
+use sdl2::render::{Texture};
 
 use std::collections::HashMap;
 

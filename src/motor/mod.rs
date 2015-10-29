@@ -15,6 +15,12 @@ impl<'window> MotorContext<'window> {
     }
 }
 
+impl<'window> Drop for MotorContext<'window> {
+    fn drop(&mut self) {
+        
+    }
+}
+
 pub enum ViewState {
     None,
     Quit

@@ -8,7 +8,6 @@ use sdl2_image::{LoadTexture, INIT_PNG};
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::rect::Rect;
 
 mod motor;
 use motor::grid::*;
@@ -29,9 +28,6 @@ impl View for Screen {
 
 }
 */
-
-
-use sdl2::render::{Renderer, Texture};
 
 
 
