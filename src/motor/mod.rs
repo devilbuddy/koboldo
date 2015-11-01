@@ -8,9 +8,13 @@ use sdl2::{TimerSubsystem, EventPump};
 use sdl2::render::{Renderer};
 use sdl2_image::{INIT_PNG};
 
+use sdl2::keyboard::{KeyboardState, Keycode};
+use std::collections::HashSet;
+
 pub struct MotorContext<'window> {
     pub renderer : Renderer<'window>,
-    pub event_pump : EventPump
+    pub event_pump : EventPump,
+    pub motor_keyboard : MotorKeyboard
 }
 
 impl<'window> MotorContext<'window> {
@@ -19,8 +23,15 @@ impl<'window> MotorContext<'window> {
 
         MotorContext {
             renderer : renderer,
-            event_pump : event_pump
+            event_pump : event_pump,
+            motor_keyboard : MotorKeyboard::new()
         }
+    }
+
+    pub fn update(&mut self) {
+
+        self.motor_keyboard.update(self.event_pump.keyboard_state());
+
     }
 }
 
@@ -38,11 +49,38 @@ pub trait MotorApp {
 struct MotorTimer {
     timer_subsystem : TimerSubsystem,
     interval : u32,
-    before : u32,
+    last_tick : u32,
     last_second : u32,
     fps : u16
 }
 
+pub struct MotorKeyboard {
+    prev_keys : HashSet<Keycode>
+}
+
+impl MotorKeyboard {
+    fn new() -> MotorKeyboard {
+        MotorKeyboard {
+            prev_keys : HashSet::new()
+        }
+    }
+
+    fn update(&mut self, keyboard_state : KeyboardState) {
+        let keys = keyboard_state.pressed_scancodes().filter_map(Keycode::from_scancode).collect();
+
+        // Get the difference between the new and old sets.
+        let new_keys = &keys - &self.prev_keys;
+        let old_keys = &self.prev_keys - &keys;
+
+        if !new_keys.is_empty() || !old_keys.is_empty() {
+            println!("{:?} -> {:?}", new_keys, old_keys);
+        }
+
+        self.prev_keys = keys;
+
+    }
+
+}
 
 impl MotorTimer {
     pub fn new(target_fps : u32, mut timer_subsystem : TimerSubsystem) -> MotorTimer {
@@ -51,8 +89,8 @@ impl MotorTimer {
 
         MotorTimer {
             timer_subsystem : timer_subsystem,
-            interval : 1_000 / target_fps,
-            before : now,
+            interval : 1000 / target_fps,
+            last_tick : now,
             last_second : now,
             fps : 0
         }
@@ -60,13 +98,13 @@ impl MotorTimer {
 
     pub fn tick(&mut self) -> (bool, f64) {
         let now = self.timer_subsystem.ticks();
-        let dt = now - self.before;
-        let elapsed = dt as f64 / 1_000.0;
+        let dt = now - self.last_tick;
+        let elapsed = dt as f64 / 1000.0;
         if dt < self.interval {
             self.timer_subsystem.delay(self.interval - dt);
             return (false, 0f64);
         }
-        self.before = now;
+        self.last_tick = now;
         self.fps += 1;
 
         if now - self.last_second > 1_000 {
@@ -99,14 +137,15 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
     app.init(&mut motor_context);
 
     'running: loop {
+
+        motor_context.update();
+
         let t = motor_timer.tick();
         if t.0 {
             motor_context.renderer.clear();
-
             if app.update(&mut motor_context, t.1) {
                 break 'running;
             }
-
             motor_context.renderer.present();
         }
     }

@@ -7,7 +7,7 @@ use sdl2_image::LoadTexture;
 
 use sdl2::pixels::Color;
 use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
+use sdl2::keyboard::{KeyboardState, Keycode};
 
 mod motor;
 use motor::grid::*;

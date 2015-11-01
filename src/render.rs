@@ -16,7 +16,7 @@ pub fn render_grid(motor_context : &mut MotorContext, grid : &Grid<Cell>, tile_s
                     let dst_rect = Rect::new_unwrap(x as i32 * 8, y as i32 * 8, 8, 8);
                     motor_context.renderer.copy(&tile_set.texture, Some(texture_region.bounds), Some(dst_rect));
 
-                    let e = &cell.entity;
+                    //let e = &cell.entity;
 
                 },
                 _ => {}
