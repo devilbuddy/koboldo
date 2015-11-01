@@ -43,27 +43,47 @@ struct MotorTimer {
     fps : u16
 }
 
-/*
+
 impl MotorTimer {
-    pub fn new(target_fps : u32, timer_subsystem : TimerSubsystem) -> MotorTimer {
+    pub fn new(target_fps : u32, mut timer_subsystem : TimerSubsystem) -> MotorTimer {
 
         let now = timer_subsystem.ticks();
 
         MotorTimer {
             timer_subsystem : timer_subsystem,
-            interval : 1_000 / (target_fps as f64),
+            interval : 1_000 / target_fps,
             before : now,
             last_second : now,
             fps : 0
         }
     }
+
+    pub fn tick(&mut self) -> (bool, f64) {
+        let now = self.timer_subsystem.ticks();
+        let dt = now - self.before;
+        let elapsed = dt as f64 / 1_000.0;
+        if dt < self.interval {
+            self.timer_subsystem.delay(self.interval - dt);
+            return (false, 0f64);
+        }
+        self.before = now;
+        self.fps += 1;
+
+        if now - self.last_second > 1_000 {
+            println!("FPS: {}", self.fps);
+            self.last_second = now;
+            self.fps = 0;
+        }
+        return (true, elapsed);
+    }
 }
-*/
+
 
 pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : &mut MotorApp) {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
-    let mut timer = sdl_context.timer().unwrap();
+
+    let mut motor_timer = MotorTimer::new(60, sdl_context.timer().unwrap());
 
     let window = video.window(window_title, width, height)
         .position_centered()
@@ -78,38 +98,17 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
 
     app.init(&mut motor_context);
 
-    // Frame timing
-    let interval = 1_000 / 60;
-    let mut before = timer.ticks();
-    let mut last_second = timer.ticks();
-    let mut fps = 0u16;
-
     'running: loop {
-        let now = timer.ticks();
-        let dt = now - before;
-        let elapsed = dt as f64 / 1_000.0;
-        if dt < interval {
-            timer.delay(interval - dt);
-            continue;
+        let t = motor_timer.tick();
+        if t.0 {
+            motor_context.renderer.clear();
+
+            if app.update(&mut motor_context, t.1) {
+                break 'running;
+            }
+
+            motor_context.renderer.present();
         }
-        before = now;
-        fps += 1;
-
-        if now - last_second > 1_000 {
-            //println!("FPS: {}", fps);
-            last_second = now;
-            fps = 0;
-        }
-
-
-        motor_context.renderer.clear();
-
-        if app.update(&mut motor_context, elapsed) {
-            break 'running;
-        }
-
-        motor_context.renderer.present();
-
     }
 
 }
