@@ -38,6 +38,8 @@ impl motor::MotorApp for App {
     fn init(&mut self, motor_context : &mut motor::MotorContext) {
         let texture = motor_context.renderer.load_texture(&Path::new("assets/level_assets.png")).unwrap();
 
+        let monster_texture = motor_context.renderer.load_texture(&Path::new("assets/monster_assets.png")).unwrap();
+
         let mut tile_set = TileSet::new(texture);
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
         tile_set.add_tile(Tile::Water, TextureRegion::new(0, 8, 8, 8));
@@ -60,7 +62,7 @@ impl motor::MotorApp for App {
         motor_context.renderer.set_logical_size(200, 150).unwrap();
     }
 
-    fn update(&mut self, motor_context : &mut motor::MotorContext) -> bool{
+    fn update(&mut self, motor_context : &mut motor::MotorContext, delta_time : f64) -> bool{
 
         let mut done = false;
 
@@ -93,5 +95,5 @@ impl motor::MotorApp for App {
 
 pub fn main() {
     let mut app = App::new();
-    motor::motor_start(800, 600, &mut app)
+    motor::motor_start("rust-sdl2-game", 800, 600, &mut app)
 }
