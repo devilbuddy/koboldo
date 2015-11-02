@@ -20,7 +20,8 @@ use sdl2::render::{Renderer};
 pub fn render<'a>(renderer : &mut Renderer<'a>, texture: &Texture, texture_region : &TextureRegion, position : (i32, i32)) {
     renderer.copy(texture,
         Some(texture_region.bounds),
-        Some(Rect::new_unwrap(position.0, position.1, texture_region.bounds.width(), texture_region.bounds.height())));
+        Some(Rect::new_unwrap(position.0, position.1, texture_region.bounds.width(), texture_region.bounds.height()))
+    );
 }
 
 
@@ -39,7 +40,7 @@ impl Animation {
     }
 
     pub fn get_texture_region(&self, state_time : f64) -> &TextureRegion {
-        let frame_number =  (state_time / self.frame_duration);
+        let frame_number =  state_time / self.frame_duration;
         let frame_index = frame_number % (self.frames.len() as f64);
         return &self.frames[frame_index as usize];
     }

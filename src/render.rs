@@ -1,5 +1,3 @@
-use sdl2::rect::Rect;
-
 use motor::MotorContext;
 use motor::grid::Grid;
 use motor::gfx::*;

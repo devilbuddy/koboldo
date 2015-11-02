@@ -1,11 +1,7 @@
-use sdl2::rect::Rect;
-use sdl2::render::{Texture};
-
-use motor::gfx::TextureRegion;
-
-use std::collections::HashMap;
-
 use world::Tile;
+use motor::gfx::TextureRegion;
+use sdl2::render::{Texture};
+use std::collections::HashMap;
 
 pub struct TileSet {
     pub texture : Texture,
