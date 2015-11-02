@@ -1,6 +1,8 @@
 use sdl2::rect::Rect;
 use sdl2::render::{Texture};
 
+use motor::gfx::TextureRegion;
+
 use std::collections::HashMap;
 
 use world::Tile;
@@ -30,6 +32,7 @@ impl TileSet {
     }
 }
 
+/*
 pub struct TextureRegion {
     pub bounds : Rect
 }
@@ -42,3 +45,4 @@ impl TextureRegion {
         }
     }
 }
+*/

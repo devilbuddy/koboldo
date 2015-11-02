@@ -12,3 +12,24 @@ impl TextureRegion {
         }
     }
 }
+
+pub struct Animation {
+    frame_duration : f64,
+    frames : Vec<TextureRegion>
+}
+
+impl Animation {
+
+    pub fn new(frame_duration : f64, frames : Vec<TextureRegion>) -> Animation {
+        Animation {
+            frame_duration : frame_duration,
+            frames : frames
+        }
+    }
+
+    pub fn get_texture_region(&self, state_time : f64) -> &TextureRegion {
+        let frame_number =  (state_time / self.frame_duration);
+        let frame_index = frame_number % (self.frames.len() as f64);
+        return &self.frames[frame_index as usize];
+    }
+}
