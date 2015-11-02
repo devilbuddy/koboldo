@@ -99,13 +99,15 @@ impl motor::MotorApp for App {
 
         self.state_time += delta_time;
 
+
         let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
-        let dst_rect = Rect::new_unwrap(60, 60, 8, 8);
-        motor_context.renderer.copy(self.monster_texture.as_ref().unwrap(), Some(texture_region.bounds), Some(dst_rect));
+        motor::gfx::render(&mut motor_context.renderer, self.monster_texture.as_ref().unwrap(), texture_region, (60, 60));
 
         return done;
     }
 }
+
+
 
 pub fn main() {
     let mut app = App::new();
