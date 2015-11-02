@@ -29,9 +29,7 @@ impl<'window> MotorContext<'window> {
     }
 
     pub fn update(&mut self) {
-
         self.motor_keyboard.update(self.event_pump.keyboard_state());
-
     }
 }
 
@@ -55,12 +53,14 @@ struct MotorTimer {
 }
 
 pub struct MotorKeyboard {
+    new_keys : HashSet<Keycode>,
     prev_keys : HashSet<Keycode>
 }
 
 impl MotorKeyboard {
     fn new() -> MotorKeyboard {
         MotorKeyboard {
+            new_keys : HashSet::new(),
             prev_keys : HashSet::new()
         }
     }
@@ -69,15 +69,22 @@ impl MotorKeyboard {
         let keys = keyboard_state.pressed_scancodes().filter_map(Keycode::from_scancode).collect();
 
         // Get the difference between the new and old sets.
-        let new_keys = &keys - &self.prev_keys;
+        self.new_keys = &keys - &self.prev_keys;
         let old_keys = &self.prev_keys - &keys;
 
-        if !new_keys.is_empty() || !old_keys.is_empty() {
-            println!("{:?} -> {:?}", new_keys, old_keys);
+        if !self.new_keys.is_empty() || !old_keys.is_empty() {
+            println!("{:?} -> {:?}", self.new_keys, old_keys);
         }
 
         self.prev_keys = keys;
+    }
 
+    fn is_key_pressed(&self, key_code : Keycode) -> bool {
+        return self.prev_keys.contains(&key_code);
+    }
+
+    fn is_key_just_pressed(&self, key_code : Keycode) -> bool {
+        return self.new_keys.contains(&key_code);
     }
 
 }
@@ -116,7 +123,6 @@ impl MotorTimer {
     }
 }
 
-
 pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : &mut MotorApp) {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
@@ -149,5 +155,4 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
             motor_context.renderer.present();
         }
     }
-
 }
