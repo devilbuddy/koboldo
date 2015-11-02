@@ -66,20 +66,14 @@ impl motor::MotorApp for App {
 
         let mut done = false;
 
+        if motor_context.motor_keyboard.is_key_pressed(Keycode::Escape) {
+            done = true;
+        }
+
         for event in motor_context.event_pump.poll_iter() {
             match event {
                 Event::Quit {..} =>  {
                     done = true;
-                },
-                Event::KeyDown {keycode, ..} => {
-                    match keycode  {
-                        Some(Keycode::Escape) => { done = true; },
-                        Some(Keycode::Up) => {},
-                        Some(Keycode::Down) => {},
-                        Some(Keycode::Left) => {},
-                        Some(Keycode::Right) => {},
-                        _ => {}
-                    };
                 },
                 _ => {}
             }

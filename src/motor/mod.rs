@@ -67,23 +67,15 @@ impl MotorKeyboard {
 
     fn update(&mut self, keyboard_state : KeyboardState) {
         let keys = keyboard_state.pressed_scancodes().filter_map(Keycode::from_scancode).collect();
-
-        // Get the difference between the new and old sets.
         self.new_keys = &keys - &self.prev_keys;
-        let old_keys = &self.prev_keys - &keys;
-
-        if !self.new_keys.is_empty() || !old_keys.is_empty() {
-            println!("{:?} -> {:?}", self.new_keys, old_keys);
-        }
-
         self.prev_keys = keys;
     }
 
-    fn is_key_pressed(&self, key_code : Keycode) -> bool {
+    pub fn is_key_pressed(&self, key_code : Keycode) -> bool {
         return self.prev_keys.contains(&key_code);
     }
 
-    fn is_key_just_pressed(&self, key_code : Keycode) -> bool {
+    pub fn is_key_just_pressed(&self, key_code : Keycode) -> bool {
         return self.new_keys.contains(&key_code);
     }
 
