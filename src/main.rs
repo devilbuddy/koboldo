@@ -62,10 +62,8 @@ impl motor::MotorApp for App {
         motor_context.renderer.set_logical_size(200, 150).unwrap();
     }
 
-    fn update(&mut self, motor_context : &mut motor::MotorContext, delta_time : f64) -> bool{
-
+    fn update(&mut self, motor_context : &mut motor::MotorContext, delta_time : f64) -> bool {
         let mut done = false;
-
         if motor_context.motor_keyboard.is_key_pressed(Keycode::Escape) {
             done = true;
         }

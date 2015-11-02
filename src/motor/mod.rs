@@ -44,14 +44,6 @@ pub trait MotorApp {
     fn update(&mut self, motor_context : &mut MotorContext, delta_time : f64) -> bool;
 }
 
-struct MotorTimer {
-    timer_subsystem : TimerSubsystem,
-    interval : u32,
-    last_tick : u32,
-    last_second : u32,
-    fps : u16
-}
-
 pub struct MotorKeyboard {
     new_keys : HashSet<Keycode>,
     prev_keys : HashSet<Keycode>
@@ -81,6 +73,15 @@ impl MotorKeyboard {
 
 }
 
+struct MotorTimer {
+    timer_subsystem : TimerSubsystem,
+    interval : u32,
+    last_tick : u32,
+    last_second : u32,
+    fps : u16,
+    log_enabled : bool
+}
+
 impl MotorTimer {
     pub fn new(target_fps : u32, mut timer_subsystem : TimerSubsystem) -> MotorTimer {
 
@@ -91,7 +92,8 @@ impl MotorTimer {
             interval : 1000 / target_fps,
             last_tick : now,
             last_second : now,
-            fps : 0
+            fps : 0,
+            log_enabled : false
         }
     }
 
@@ -104,14 +106,20 @@ impl MotorTimer {
             return (false, 0f64);
         }
         self.last_tick = now;
-        self.fps += 1;
 
-        if now - self.last_second > 1_000 {
-            println!("FPS: {}", self.fps);
-            self.last_second = now;
-            self.fps = 0;
+        if self.log_enabled {
+            self.fps += 1;
+            if now - self.last_second > 1_000 {
+                println!("FPS: {}", self.fps);
+                self.last_second = now;
+                self.fps = 0;
+            }
         }
         return (true, elapsed);
+    }
+
+    pub fn set_enable_fps_log(&mut self, enabled : bool) {
+        self.log_enabled = enabled;
     }
 }
 
@@ -120,6 +128,7 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
     let video = sdl_context.video().unwrap();
 
     let mut motor_timer = MotorTimer::new(60, sdl_context.timer().unwrap());
+    motor_timer.set_enable_fps_log(true);
 
     let window = video.window(window_title, width, height)
         .position_centered()
