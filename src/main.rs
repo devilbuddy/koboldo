@@ -68,7 +68,8 @@ impl motor::MotorApp for App {
                 motor_context.renderer.load_texture(&Path::new("assets/monster_assets.png")).unwrap()
             );
 
-        self.animation = Some(Animation::new(1f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]));
+        self.animation = Some(Animation::new(1f64,
+            vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]));
 
 
         motor_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
@@ -98,20 +99,9 @@ impl motor::MotorApp for App {
 
         self.state_time += delta_time;
 
-
-        let a = match self.animation {
-            Some(ref animation) => animation,
-            _ => panic!("ok")
-        };
-        let texture_region = a.get_texture_region(self.state_time);
-        let dst_rect = Rect::new_unwrap(50, 50, 8, 8);
+        let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
+        let dst_rect = Rect::new_unwrap(60, 60, 8, 8);
         motor_context.renderer.copy(self.monster_texture.as_ref().unwrap(), Some(texture_region.bounds), Some(dst_rect));
-
-        /*
-        let texture_region = self.animation.unwrap().get_texture_region(self.state_time);
-        let dst_rect = Rect::new_unwrap(50, 50, 8, 8);
-        motor_context.renderer.copy(self.monster_texture.as_ref().unwrap(), Some(texture_region.bounds), Some(dst_rect));
-        */
 
         return done;
     }
