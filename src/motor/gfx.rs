@@ -1,5 +1,4 @@
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
 
 pub struct TextureRegion {
     pub bounds : Rect
