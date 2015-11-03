@@ -7,10 +7,10 @@ use sdl2::render::Texture;
 use sdl2_image::LoadTexture;
 
 use sdl2::pixels::Color;
-use sdl2::event::Event;
 use sdl2::keyboard::{Keycode};
 
 mod motor;
+use motor::MotorGraphics;
 use motor::grid::*;
 use motor::gfx::{Animation, TextureRegion};
 
@@ -83,14 +83,7 @@ impl motor::MotorApp for App {
             done = true;
         }
 
-        for event in motor_context.event_pump.poll_iter() {
-            match event {
-                Event::Quit {..} =>  {
-                    done = true;
-                },
-                _ => {}
-            }
-        }
+
 
         let grid = self.grid.as_ref().unwrap();
         let tile_set = self.tile_set.as_ref().unwrap();
@@ -100,7 +93,7 @@ impl motor::MotorApp for App {
 
 
         let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
-        motor::gfx::render(&mut motor_context.renderer, self.monster_texture.as_ref().unwrap(), texture_region, (60, 60));
+        motor_context.render(self.monster_texture.as_ref().unwrap(), texture_region, (60, 60));
 
         return done;
     }

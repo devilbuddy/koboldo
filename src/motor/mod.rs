@@ -5,6 +5,7 @@ pub mod grid;
 pub mod gfx;
 
 use sdl2::{TimerSubsystem, EventPump};
+use sdl2::event::Event;
 use sdl2::render::{Renderer};
 use sdl2_image::{INIT_PNG};
 
@@ -13,7 +14,7 @@ use std::collections::HashSet;
 
 pub struct MotorContext<'window> {
     pub renderer : Renderer<'window>,
-    pub event_pump : EventPump,
+    event_pump : EventPump,
     pub motor_keyboard : MotorKeyboard
 }
 
@@ -31,11 +32,26 @@ impl<'window> MotorContext<'window> {
     pub fn update(&mut self) {
         self.motor_keyboard.update(self.event_pump.keyboard_state());
     }
+
+
 }
 
 impl<'window> Drop for MotorContext<'window> {
     fn drop(&mut self) {
         sdl2_image::quit();
+    }
+}
+
+pub trait MotorGraphics {
+    fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
+}
+
+impl<'window> MotorGraphics for MotorContext<'window> {
+    fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32)) {
+        self.renderer.copy(texture,
+            Some(texture_region.bounds),
+            Some(sdl2::rect::Rect::new_unwrap(position.0, position.1, texture_region.bounds.width(), texture_region.bounds.height()))
+        );
     }
 }
 
@@ -109,7 +125,7 @@ impl MotorTimer {
 
         if self.log_enabled {
             self.fps += 1;
-            if now - self.last_second > 1_000 {
+            if now - self.last_second > 1000 {
                 println!("FPS: {}", self.fps);
                 self.last_second = now;
                 self.fps = 0;
@@ -146,6 +162,15 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
     'running: loop {
 
         motor_context.update();
+
+        for event in motor_context.event_pump.poll_iter() {
+            match event {
+                Event::Quit {..} =>  {
+                    break 'running;
+                },
+                _ => {}
+            }
+        }
 
         let t = motor_timer.tick();
         if t.0 {
