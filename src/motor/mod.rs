@@ -4,6 +4,7 @@ extern crate sdl2_image;
 pub mod keyboard;
 pub mod grid;
 pub mod gfx;
+pub mod font;
 
 use sdl2::{TimerSubsystem, EventPump};
 use sdl2::event::Event;

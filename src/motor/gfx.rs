@@ -19,7 +19,6 @@ pub struct Animation {
 }
 
 impl Animation {
-
     pub fn new(frame_duration : f64, frames : Vec<TextureRegion>) -> Animation {
         Animation {
             frame_duration : frame_duration,

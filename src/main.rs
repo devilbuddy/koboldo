@@ -73,6 +73,9 @@ impl motor::MotorApp for App {
 
         motor_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
         motor_context.renderer.set_logical_size(200, 150).unwrap();
+
+        motor::font::BitmapFont::load(&Path::new("assets/04b_03.fnt"));
+
     }
 
     fn update(&mut self, motor_context : &mut motor::MotorContext, delta_time : f64) -> bool {
