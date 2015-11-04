@@ -7,8 +7,10 @@ pub mod gfx;
 
 use sdl2::{TimerSubsystem, EventPump};
 use sdl2::event::Event;
-use sdl2::render::{Renderer};
-use sdl2_image::{INIT_PNG};
+use sdl2::render::{Renderer, Texture};
+use sdl2_image::{INIT_PNG, LoadTexture};
+
+use std::path::Path;
 
 struct MotorTimer {
     timer_subsystem : TimerSubsystem,
@@ -89,6 +91,7 @@ impl<'window> Drop for MotorContext<'window> {
 }
 
 pub trait MotorGraphics {
+    fn load_texture(&mut self, path : &Path) -> Texture;
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
 }
 
@@ -99,6 +102,11 @@ impl<'window> MotorGraphics for MotorContext<'window> {
             Some(sdl2::rect::Rect::new_unwrap(position.0, position.1, texture_region.bounds.width(), texture_region.bounds.height()))
         );
     }
+
+    fn load_texture(&mut self, path : &Path) -> Texture {
+        self.renderer.load_texture(path).unwrap()
+    }
+
 }
 
 pub trait MotorApp {

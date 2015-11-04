@@ -44,7 +44,7 @@ impl App {
 
 impl motor::MotorApp for App {
     fn init(&mut self, motor_context : &mut motor::MotorContext) {
-        let texture = motor_context.renderer.load_texture(&Path::new("assets/level_assets.png")).unwrap();
+        let texture = motor_context.load_texture(&Path::new("assets/level_assets.png"));
 
         let mut tile_set = TileSet::new(texture);
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
@@ -64,7 +64,7 @@ impl motor::MotorApp for App {
         self.tile_set = Some(tile_set);
         self.grid = Some(grid);
         self.monster_texture = Some(
-                motor_context.renderer.load_texture(&Path::new("assets/monster_assets.png")).unwrap()
+                motor_context.load_texture(&Path::new("assets/monster_assets.png"))
             );
 
         self.animation = Some(Animation::new(1f64,
@@ -76,14 +76,10 @@ impl motor::MotorApp for App {
     }
 
     fn update(&mut self, motor_context : &mut motor::MotorContext, delta_time : f64) -> bool {
-
-
         let mut done = false;
         if motor_context.motor_keyboard.is_key_pressed(Keycode::Escape) {
             done = true;
         }
-
-
 
         let grid = self.grid.as_ref().unwrap();
         let tile_set = self.tile_set.as_ref().unwrap();
@@ -98,8 +94,6 @@ impl motor::MotorApp for App {
         return done;
     }
 }
-
-
 
 pub fn main() {
     let mut app = App::new();
