@@ -15,6 +15,8 @@ pub struct BitmapFont; /* {
 }
 */
 
+struct Glyph;
+
 impl BitmapFont {
 
     pub fn load(font_file : &Path) -> Result<BitmapFont, &'static str> {
