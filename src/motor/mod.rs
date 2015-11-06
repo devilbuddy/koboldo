@@ -93,6 +93,7 @@ impl<'window> Drop for MotorContext<'window> {
 
 pub trait MotorGraphics {
     fn load_texture(&mut self, path : &Path) -> Texture;
+    fn load_font(&mut self, path : &Path) -> font::BitmapFont;
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
 }
 
@@ -106,6 +107,11 @@ impl<'window> MotorGraphics for MotorContext<'window> {
 
     fn load_texture(&mut self, path : &Path) -> Texture {
         self.renderer.load_texture(path).unwrap()
+    }
+
+    fn load_font(&mut self, path: &Path) -> font::BitmapFont {
+        let mut font_builder = font::BitmapFontBuilder::new();
+        font_builder.build(path, &self.renderer).unwrap()
     }
 
 }
