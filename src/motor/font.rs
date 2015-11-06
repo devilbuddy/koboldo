@@ -3,6 +3,7 @@ use std::path::Path;
 use std::fs::File;
 
 use std::collections::HashMap;
+use std::string::String;
 
 use sdl2::render::{Texture, Renderer};
 use sdl2_image::LoadTexture;
@@ -49,8 +50,7 @@ impl BitmapFontBuilder {
         self.glyphs.insert(c, glyph);
     }
 
-    pub fn build(&self, font_file : &Path, renderer : &Renderer) -> Result<BitmapFont, &'static str> {
-
+    pub fn load(&mut self, font_file : &Path) {
         let reader = BufReader::new(File::open(&font_file).expect("Failed to load font file"));
         for line in reader.lines() {
             match line {
@@ -92,8 +92,9 @@ impl BitmapFontBuilder {
             }
 
         }
+    }
 
-
+    pub fn build(self, renderer : &Renderer) -> Result<BitmapFont, &'static str> {
         //Err("Failed to build font")
         let s = self.file_name.unwrap();
         Ok(BitmapFont {

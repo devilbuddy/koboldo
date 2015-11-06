@@ -111,7 +111,8 @@ impl<'window> MotorGraphics for MotorContext<'window> {
 
     fn load_font(&mut self, path: &Path) -> font::BitmapFont {
         let mut font_builder = font::BitmapFontBuilder::new();
-        font_builder.build(path, &self.renderer).unwrap()
+        font_builder.load(path);
+        font_builder.build(&self.renderer).unwrap()
     }
 
 }
