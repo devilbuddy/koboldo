@@ -2,6 +2,7 @@ extern crate sdl2;
 extern crate sdl2_image;
 
 pub mod keyboard;
+pub mod mouse;
 pub mod grid;
 pub mod gfx;
 pub mod font;
@@ -66,7 +67,8 @@ impl MotorTimer {
 pub struct MotorContext<'window> {
     pub renderer : Renderer<'window>,
     event_pump : EventPump,
-    pub keyboard : keyboard::MotorKeyboard
+    pub keyboard : keyboard::MotorKeyboard,
+    pub mouse : mouse::MotorMouse
 }
 
 impl<'window> MotorContext<'window> {
@@ -76,7 +78,8 @@ impl<'window> MotorContext<'window> {
         MotorContext {
             renderer : renderer,
             event_pump : event_pump,
-            keyboard : keyboard::MotorKeyboard::new()
+            keyboard : keyboard::MotorKeyboard::new(),
+            mouse : mouse::MotorMouse::new()
         }
     }
 
@@ -146,6 +149,9 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
                 Event::Quit {..} =>  {
                     break 'running;
                 },
+                Event::MouseMotion {..} | Event::MouseButtonDown {..} | Event::MouseButtonUp {..} | Event::MouseWheel {..} => {
+                    context.mouse.handle_event(event);
+                }
                 _ => {}
             }
         }
