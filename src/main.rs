@@ -13,6 +13,7 @@ mod motor;
 use motor::MotorGraphics;
 use motor::grid::*;
 use motor::gfx::{Animation, TextureRegion};
+use motor::font::*;
 
 mod tiles;
 mod render;
@@ -27,6 +28,7 @@ struct App {
     grid : Option<Grid<Cell>>,
     monster_texture : Option<Texture>,
     animation : Option<Animation>,
+    font : Option<BitmapFont>,
     state_time : f64
 }
 
@@ -37,6 +39,7 @@ impl App {
             grid : None,
             monster_texture : None,
             animation : None,
+            font : None,
             state_time : 0f64
         }
     }
@@ -74,7 +77,7 @@ impl motor::MotorApp for App {
         motor_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
         motor_context.renderer.set_logical_size(200, 150).unwrap();
 
-        motor_context.load_font(&Path::new("assets/04b_03.fnt"));
+        self.font = Some(motor_context.load_font(&Path::new("assets/04b_03.fnt")));
 
     }
 
@@ -93,6 +96,10 @@ impl motor::MotorApp for App {
 
         let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
         motor_context.render(self.monster_texture.as_ref().unwrap(), texture_region, (60, 60));
+
+        self.font.as_ref().unwrap().draw_str("ABCDEFGHIJGKMNOPQRSTUVWXYZ", 20, 20, &mut motor_context.renderer);
+        self.font.as_ref().unwrap().draw_str("abcdefghijklmnopqrstuvwxyz", 20, 30, &mut motor_context.renderer);
+        self.font.as_ref().unwrap().draw_str("0123456789", 20, 40, &mut motor_context.renderer);
 
         return done;
     }
