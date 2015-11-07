@@ -66,7 +66,7 @@ impl MotorTimer {
 pub struct MotorContext<'window> {
     pub renderer : Renderer<'window>,
     event_pump : EventPump,
-    pub motor_keyboard : keyboard::MotorKeyboard
+    pub keyboard : keyboard::MotorKeyboard
 }
 
 impl<'window> MotorContext<'window> {
@@ -76,12 +76,12 @@ impl<'window> MotorContext<'window> {
         MotorContext {
             renderer : renderer,
             event_pump : event_pump,
-            motor_keyboard : keyboard::MotorKeyboard::new()
+            keyboard : keyboard::MotorKeyboard::new()
         }
     }
 
     pub fn update(&mut self) {
-        self.motor_keyboard.update(self.event_pump.keyboard_state());
+        self.keyboard.update(self.event_pump.keyboard_state());
     }
 }
 
@@ -112,12 +112,11 @@ impl<'window> MotorGraphics for MotorContext<'window> {
     fn load_font(&mut self, path: &Path) -> font::BitmapFont {
         font::BitmapFont::load(path, &self.renderer).unwrap()
     }
-
 }
 
 pub trait MotorApp {
-    fn init(&mut self, motor_context : &mut MotorContext);
-    fn update(&mut self, motor_context : &mut MotorContext, delta_time : f64) -> bool;
+    fn init(&mut self, context : &mut MotorContext);
+    fn update(&mut self, context : &mut MotorContext, delta_time : f64) -> bool;
 }
 
 pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : &mut MotorApp) {
@@ -133,16 +132,16 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
         .build()
         .unwrap();
 
-    let mut motor_context = MotorContext::new(
+    let mut context = MotorContext::new(
         window.renderer().build().unwrap(),
         sdl_context.event_pump().unwrap()
     );
-    app.init(&mut motor_context);
+    app.init(&mut context);
 
     'running: loop {
-        motor_context.update();
+        context.update();
 
-        for event in motor_context.event_pump.poll_iter() {
+        for event in context.event_pump.poll_iter() {
             match event {
                 Event::Quit {..} =>  {
                     break 'running;
@@ -153,11 +152,11 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
 
         let t = motor_timer.tick();
         if t.0 {
-            motor_context.renderer.clear();
-            if app.update(&mut motor_context, t.1) {
+            context.renderer.clear();
+            if app.update(&mut context, t.1) {
                 break 'running;
             }
-            motor_context.renderer.present();
+            context.renderer.present();
         }
     }
 }

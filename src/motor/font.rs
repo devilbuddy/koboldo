@@ -18,7 +18,7 @@ const TAG_CHAR : &'static str = "char";
 
 pub struct BitmapFont {
     texture : Texture,
-    line_height : i32,
+    pub line_height : i32,
     glyphs : HashMap<char, Glyph>
 }
 
@@ -29,8 +29,7 @@ struct BitmapFontData {
 }
 
 impl BitmapFontData {
-
-    pub fn new() -> BitmapFontData {
+    fn new() -> BitmapFontData {
         BitmapFontData {
             file_name : None,
             line_height : None,
@@ -63,6 +62,12 @@ struct Glyph {
     x_advance : i32
 }
 
+impl Glyph {
+    pub fn is_empty(&self) -> bool {
+        self.width == 0 || self.height == 0
+    }
+}
+
 impl BitmapFont {
 
     pub fn draw_str(&self, s : &'static str, x : i32, y: i32, renderer : &mut Renderer) {
@@ -71,10 +76,12 @@ impl BitmapFont {
         for c in s.chars() {
             match self.glyphs.get(&c) {
                 Some(glyph) => {
-                    renderer.copy(&self.texture,
-                        Some(Rect::new_unwrap(glyph.x, glyph.y, glyph.width, glyph.height)),
-                        Some(Rect::new_unwrap(x_pos + glyph.x_offset, y_pos + glyph.y_offset, glyph.width, glyph.height))
-                    );
+                    if !glyph.is_empty() {
+                        renderer.copy(&self.texture,
+                            Some(Rect::new_unwrap(glyph.x, glyph.y, glyph.width, glyph.height)),
+                            Some(Rect::new_unwrap(x_pos + glyph.x_offset, y_pos + glyph.y_offset, glyph.width, glyph.height))
+                        );
+                    }
                     x_pos += glyph.x_advance;
                 }
                 _ => {}
@@ -84,7 +91,6 @@ impl BitmapFont {
 
 
     pub fn load(font_file : &Path, renderer : &Renderer) -> Result<BitmapFont, &'static str> {
-
         let mut data = BitmapFontData::new();
 
         let reader = BufReader::new(File::open(&font_file).expect("Failed to load font file"));
@@ -126,7 +132,22 @@ impl BitmapFont {
                 }
                 _ => {}
             }
+        }
 
+        // add glyph for space if missing
+        if !data.glyphs.contains_key(&' ') {
+            let space_width = data.glyphs.get(&'1').unwrap().x_advance;
+            data.add_glyph(' ',
+                Glyph {
+                    x : 0,
+                    y : 0,
+                    width : 0,
+                    height : 0,
+                    x_offset : 0,
+                    y_offset : 0,
+                    x_advance : space_width
+                }
+            );
         }
 
         let s = data.file_name.unwrap();
