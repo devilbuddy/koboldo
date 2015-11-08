@@ -22,34 +22,32 @@ mod world;
 use tiles::*;
 use world::*;
 
+struct Assets {
+    tile_set : TileSet,
+    grid : Grid<Cell>,
+    monster_texture : Texture,
+    animation : Animation,
+    font : BitmapFont
+}
 
 struct App {
-    tile_set : Option<TileSet>,
-    grid : Option<Grid<Cell>>,
-    monster_texture : Option<Texture>,
-    animation : Option<Animation>,
-    font : Option<BitmapFont>,
-    state_time : f64
+    state_time : f64,
+    assets : Option<Assets>
 }
 
 impl App {
     pub fn new() -> App {
         App {
-            tile_set : None,
-            grid : None,
-            monster_texture : None,
-            animation : None,
-            font : None,
-            state_time : 0f64
+            state_time : 0f64,
+            assets : None
         }
     }
 }
 
 impl motor::MotorApp for App {
     fn init(&mut self, context : &mut motor::MotorContext) {
-        let texture = context.load_texture(&Path::new("assets/level_assets.png"));
-
-        let mut tile_set = TileSet::new(texture);
+    
+        let mut tile_set = TileSet::new(context.load_texture(&Path::new("assets/level_assets.png")));
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
         tile_set.add_tile(Tile::Water, TextureRegion::new(0, 8, 8, 8));
 
@@ -64,20 +62,22 @@ impl motor::MotorApp for App {
         grid.get_mut(0, 0).unwrap().set_entity(entity);
 
 
-        self.tile_set = Some(tile_set);
-        self.grid = Some(grid);
-        self.monster_texture = Some(
-                context.load_texture(&Path::new("assets/monster_assets.png"))
-            );
-
-        self.animation = Some(Animation::new(1f64,
-            vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]));
+        let animation = Animation::new(1f64,
+            vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]);
 
 
         context.renderer.set_draw_color(Color::RGB(0, 0, 0));
         context.renderer.set_logical_size(200, 150).unwrap();
 
-        self.font = Some(context.load_font(&Path::new("assets/04b_03.fnt")));
+
+        self.assets = Some(
+            Assets {
+                tile_set : tile_set,
+                grid : grid,
+                monster_texture : context.load_texture(&Path::new("assets/monster_assets.png")),
+                animation : animation,
+                font : context.load_font(&Path::new("assets/04b_03.fnt"))
+            });
 
     }
 
@@ -86,18 +86,16 @@ impl motor::MotorApp for App {
         if context.keyboard.is_key_pressed(Keycode::Escape) {
             done = true;
         }
-
-        let grid = self.grid.as_ref().unwrap();
-        let tile_set = self.tile_set.as_ref().unwrap();
-        render::render_grid(context, grid, tile_set);
-
         self.state_time += delta_time;
 
+        let assets = self.assets.as_ref().unwrap();
 
-        let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
-        context.render(self.monster_texture.as_ref().unwrap(), texture_region, (60, 60));
+        render::render_grid(context, &assets.grid, &assets.tile_set);
 
-        let font = self.font.as_ref().unwrap();
+        let texture_region = assets.animation.get_texture_region(self.state_time);
+        context.render(&assets.monster_texture, texture_region, (60, 60));
+
+        let font = &assets.font;
         let mut y = 20;
         font.draw_str("ABCDEFGHIJGKMNOPQRSTUVWXYZ", 20, y, &mut context.renderer);
         y += font.line_height;
