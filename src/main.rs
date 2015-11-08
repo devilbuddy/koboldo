@@ -46,14 +46,14 @@ impl App {
 
 impl motor::MotorApp for App {
     fn init(&mut self, context : &mut motor::MotorContext) {
-    
+        context.renderer.set_draw_color(Color::RGB(0, 0, 0));
+        context.renderer.set_logical_size(200, 150).unwrap();
+
         let mut tile_set = TileSet::new(context.load_texture(&Path::new("assets/level_assets.png")));
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
         tile_set.add_tile(Tile::Water, TextureRegion::new(0, 8, 8, 8));
 
-
         let mut grid = Grid::<Cell>::new(10, 10);
-
         grid.set(0, 0, Cell::new());
         grid.set(1, 1, Cell::new());
         grid.set(2, 1, Cell::new());
@@ -61,14 +61,8 @@ impl motor::MotorApp for App {
         let entity = Entity { position : Point { x: 0, y: 0}};
         grid.get_mut(0, 0).unwrap().set_entity(entity);
 
-
         let animation = Animation::new(1f64,
             vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]);
-
-
-        context.renderer.set_draw_color(Color::RGB(0, 0, 0));
-        context.renderer.set_logical_size(200, 150).unwrap();
-
 
         self.assets = Some(
             Assets {
@@ -78,7 +72,6 @@ impl motor::MotorApp for App {
                 animation : animation,
                 font : context.load_font(&Path::new("assets/04b_03.fnt"))
             });
-
     }
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
@@ -103,7 +96,7 @@ impl motor::MotorApp for App {
         y += font.line_height;
         font.draw_str("0123456789 !:\"#¤%&/()=", 20, y, &mut context.renderer);
 
-        return done;
+        done
     }
 }
 
