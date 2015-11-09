@@ -132,19 +132,20 @@ impl motor::MotorApp for App {
 
         context.renderer.set_draw_color(Color::RGB(0, 0, 0));
 
-        self.assets = Some(
-            Assets {
-                tile_set : tile_set,
-                grid : make_grid(10, 10),
-                font : context.load_font(&Path::new("assets/04b_03.fnt")),
-                monster_texture : Rc::new(RefCell::new(context.load_texture(&Path::new("assets/monster_assets.png"))))
-            });
+        let assets = Assets {
+            tile_set : tile_set,
+            grid : make_grid(10, 10),
+            font : context.load_font(&Path::new("assets/04b_03.fnt")),
+            monster_texture : Rc::new(RefCell::new(context.load_texture(&Path::new("assets/monster_assets.png"))))
+        };
 
-        let t = self.assets.as_ref().unwrap().monster_texture.clone();
+        let t = assets.monster_texture.clone();
         let s = SpriteBuilder::new(t)
                     //.texture_region(TextureRegion::new(0, 8, 8, 8))
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
                     .build();
+
+        self.assets = Some(assets);
         self.sprite = Some(s);
     }
 
