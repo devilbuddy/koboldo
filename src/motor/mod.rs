@@ -122,14 +122,14 @@ pub trait MotorApp {
     fn update(&mut self, context : &mut MotorContext, delta_time : f64) -> bool;
 }
 
-pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : &mut MotorApp) {
+pub fn motor_start(window_title : &'static str, window_size : (u32, u32), logical_size : Option<(u32, u32)>, app : &mut MotorApp) {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
 
     let mut motor_timer = MotorTimer::new(60, sdl_context.timer().unwrap());
     motor_timer.set_enable_fps_log(true);
 
-    let window = video.window(window_title, width, height)
+    let window = video.window(window_title, window_size.0, window_size.1)
         .position_centered()
         .opengl()
         .build()
@@ -139,6 +139,14 @@ pub fn motor_start(window_title : &'static str, width: u32, height : u32, app : 
         window.renderer().build().unwrap(),
         sdl_context.event_pump().unwrap()
     );
+
+    match logical_size {
+        Some((w, h)) => {
+            context.renderer.set_logical_size(w, h).unwrap();
+        }
+        _ => {}
+    }
+
     app.init(&mut context);
 
     'running: loop {

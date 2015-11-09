@@ -9,6 +9,8 @@ use sdl2::rect::Rect;
 use sdl2::render::{Texture, Renderer};
 use sdl2_image::LoadTexture;
 
+use sdl2::pixels::Color;
+
 // http://www.angelcode.com/products/bmfont/doc/file_format.html
 const TAG_INFO : &'static str = "info";
 const TAG_COMMON : &'static str = "common";
@@ -105,9 +107,11 @@ impl BitmapFont {
                     ).collect::<HashMap<&str, &str>>();
 
                     if line.starts_with(TAG_INFO) {
+                        /*
                         for (&key, &value) in pairs.iter() {
                             println!("{}-{}", key, value);
                         }
+                        */
                     } else if line.starts_with(TAG_COMMON) {
                         data.set_line_height(pairs.get("lineHeight").unwrap().parse::<i32>().unwrap());
                     } else if line.starts_with(TAG_PAGE) {
