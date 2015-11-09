@@ -139,8 +139,7 @@ impl motor::MotorApp for App {
             monster_texture : Rc::new(RefCell::new(context.load_texture(&Path::new("assets/monster_assets.png"))))
         };
 
-        let t = assets.monster_texture.clone();
-        let s = SpriteBuilder::new(t)
+        let s = SpriteBuilder::new(assets.monster_texture.clone())
                     //.texture_region(TextureRegion::new(0, 8, 8, 8))
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
                     .build();
