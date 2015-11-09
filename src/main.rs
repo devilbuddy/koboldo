@@ -22,19 +22,6 @@ mod world;
 use tiles::*;
 use world::*;
 
-struct Assets {
-    tile_set : TileSet,
-    grid : Grid<Cell>,
-    font : BitmapFont,
-    monster_texture : Rc<RefCell<Texture>>
-}
-
-struct App {
-    state_time : f64,
-    assets : Option<Assets>,
-    sprite : Option<Sprite>
-}
-
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -96,6 +83,19 @@ impl Sprite {
             context.render(&t, self.texture_region.as_ref().unwrap(), self.position);
         }
     }
+}
+
+struct Assets {
+    tile_set : TileSet,
+    grid : Grid<Cell>,
+    font : BitmapFont,
+    monster_texture : Rc<RefCell<Texture>>
+}
+
+struct App {
+    state_time : f64,
+    assets : Option<Assets>,
+    sprite : Option<Sprite>
 }
 
 impl App {
