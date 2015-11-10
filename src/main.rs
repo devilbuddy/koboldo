@@ -5,16 +5,13 @@ use std::path::Path;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use sdl2::render::Texture;
-use sdl2_image::LoadTexture;
-
 use sdl2::pixels::Color;
 use sdl2::keyboard::{Keycode};
 
 mod motor;
 use motor::MotorGraphics;
 use motor::grid::Grid;
-use motor::gfx::{Animation, TextureRegion, SpriteBuilder, Sprite};
+use motor::gfx::{TextureReference, Animation, TextureRegion, SpriteBuilder, Sprite};
 use motor::font::BitmapFont;
 
 mod tiles;
@@ -28,7 +25,7 @@ struct Assets {
     tile_set : TileSet,
     grid : Grid<Cell>,
     font : BitmapFont,
-    monster_texture : Rc<RefCell<Texture>>
+    monster_texture : TextureReference
 }
 
 struct App {

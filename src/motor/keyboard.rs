@@ -1,6 +1,10 @@
 use sdl2::keyboard::{KeyboardState, Keycode};
 use std::collections::HashSet;
 
+pub trait KeyboardListener {
+    fn on_key_pressed(&mut self, key_code : Keycode);
+}
+
 pub struct MotorKeyboard {
     new_keys : HashSet<Keycode>,
     prev_keys : HashSet<Keycode>

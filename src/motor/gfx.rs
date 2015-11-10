@@ -4,6 +4,8 @@ use std::cell::RefCell;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 
+pub type TextureReference = Rc<RefCell<Texture>>;
+
 pub struct TextureRegion {
     pub bounds : Rect
 }
@@ -81,7 +83,7 @@ impl SpriteBuilder {
 }
 
 pub struct Sprite {
-    texture : Rc<RefCell<Texture>>,
+    texture : TextureReference,
     texture_region : Option<TextureRegion>,
     animation : Option<Animation>,
     state_time : f64,
