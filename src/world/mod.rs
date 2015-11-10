@@ -1,3 +1,5 @@
+pub mod grid;
+
 #[derive(PartialEq, Eq, Hash)]
 pub enum Tile {
     Grass,

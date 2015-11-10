@@ -19,7 +19,8 @@ const TAG_CHAR : &'static str = "char";
 pub struct BitmapFont {
     texture : Texture,
     pub line_height : i32,
-    glyphs : HashMap<char, Glyph>
+    glyphs : HashMap<char, Glyph>,
+    empty_glyph : Glyph
 }
 
 struct BitmapFontData {
@@ -84,7 +85,9 @@ impl BitmapFont {
                     }
                     x_pos += glyph.x_advance;
                 }
-                _ => {}
+                _ => {
+                    x_pos += self.empty_glyph.x_advance;
+                }
             }
         }
     }
@@ -105,9 +108,11 @@ impl BitmapFont {
                     ).collect::<HashMap<&str, &str>>();
 
                     if line.starts_with(TAG_INFO) {
+                        /*
                         for (&key, &value) in pairs.iter() {
                             println!("{}-{}", key, value);
                         }
+                        */
                     } else if line.starts_with(TAG_COMMON) {
                         data.set_line_height(pairs.get("lineHeight").unwrap().parse::<i32>().unwrap());
                     } else if line.starts_with(TAG_PAGE) {
@@ -134,27 +139,23 @@ impl BitmapFont {
             }
         }
 
-        // add glyph for space if missing
-        if !data.glyphs.contains_key(&' ') {
-            let space_width = data.glyphs.get(&'1').unwrap().x_advance;
-            data.add_glyph(' ',
-                Glyph {
-                    x : 0,
-                    y : 0,
-                    width : 0,
-                    height : 0,
-                    x_offset : 0,
-                    y_offset : 0,
-                    x_advance : space_width
-                }
-            );
-        }
+        let empty_glyph_width = data.glyphs.get(&'1').unwrap().x_advance;
+        let empty_glyph = Glyph {
+                x : 0,
+                y : 0,
+                width : 0,
+                height : 0,
+                x_offset : 0,
+                y_offset : 0,
+                x_advance : empty_glyph_width
+            };
 
         let s = data.file_name.unwrap();
         Ok(BitmapFont {
             texture : renderer.load_texture(Path::new(&s)).unwrap(),
             line_height : data.line_height.unwrap(),
-            glyphs : data.glyphs
+            glyphs : data.glyphs,
+            empty_glyph : empty_glyph
         })
     }
 
