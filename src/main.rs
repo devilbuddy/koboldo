@@ -13,9 +13,9 @@ use sdl2::keyboard::{Keycode};
 
 mod motor;
 use motor::MotorGraphics;
-use motor::grid::*;
+use motor::grid::Grid;
 use motor::gfx::{Animation, TextureRegion, SpriteBuilder, Sprite};
-use motor::font::*;
+use motor::font::BitmapFont;
 
 mod tiles;
 mod render;
@@ -34,7 +34,7 @@ struct Assets {
 struct App {
     state_time : f64,
     assets : Option<Assets>,
-    sprite : Option<Sprite>
+    sprites : Vec<Sprite>
 }
 
 impl App {
@@ -42,7 +42,7 @@ impl App {
         App {
             state_time : 0f64,
             assets : None,
-            sprite : None
+            sprites : Vec::new()
         }
     }
 }
@@ -78,13 +78,15 @@ impl motor::MotorApp for App {
             monster_texture : Rc::new(RefCell::new(context.load_texture(&Path::new("assets/monster_assets.png"))))
         };
 
-        let s = SpriteBuilder::new(assets.monster_texture.clone())
-                    //.texture_region(TextureRegion::new(0, 8, 8, 8))
+        self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
-                    .build();
+                    .position((40, 65))
+                    .build());
+        self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
+                    .texture_region(TextureRegion::new(16, 8, 8, 8))
+                    .build());
 
         self.assets = Some(assets);
-        self.sprite = Some(s);
     }
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
@@ -106,9 +108,10 @@ impl motor::MotorApp for App {
         y += font.line_height;
         font.draw_str("0123456789 !:\"#¤%&/()=", 20, y, &mut context.renderer);
 
-        let mut s = self.sprite.as_mut().unwrap();
-        s.update(delta_time);
-        context.render_sprite(s);
+        for s in self.sprites.iter_mut() {
+            s.update(delta_time);
+            context.render_sprite(s);
+        }
 
         return done;
     }

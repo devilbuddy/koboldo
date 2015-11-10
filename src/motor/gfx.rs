@@ -41,6 +41,7 @@ pub struct SpriteBuilder {
     texture : Rc<RefCell<Texture>>,
     texture_region : Option<TextureRegion>,
     animation : Option<Animation>,
+    position : (i32, i32)
 }
 
 impl SpriteBuilder {
@@ -48,7 +49,8 @@ impl SpriteBuilder {
         SpriteBuilder {
             texture : texture,
             texture_region : None,
-            animation : None
+            animation : None,
+            position : (0, 0)
         }
     }
     pub fn texture_region(mut self, texture_region : TextureRegion) -> SpriteBuilder {
@@ -57,6 +59,10 @@ impl SpriteBuilder {
     }
     pub fn animation(mut self, animation : Animation) -> SpriteBuilder {
         self.animation = Some(animation);
+        self
+    }
+    pub fn position(mut self, position : (i32, i32)) -> SpriteBuilder {
+        self.position = position;
         self
     }
     pub fn build(self) -> Sprite {
@@ -69,7 +75,7 @@ impl SpriteBuilder {
             animation : self.animation,
             state_time : 0f64,
             color : (255, 255, 255),
-            position : (0, 0)
+            position : self.position
         }
     }
 }
