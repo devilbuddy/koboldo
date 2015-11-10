@@ -2,6 +2,8 @@ extern crate sdl2;
 extern crate sdl2_image;
 
 use std::path::Path;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use sdl2::render::Texture;
 use sdl2_image::LoadTexture;
@@ -12,7 +14,7 @@ use sdl2::keyboard::{Keycode};
 mod motor;
 use motor::MotorGraphics;
 use motor::grid::*;
-use motor::gfx::{Animation, TextureRegion};
+use motor::gfx::{Animation, TextureRegion, SpriteBuilder, Sprite};
 use motor::font::*;
 
 mod tiles;
@@ -21,69 +23,6 @@ mod world;
 
 use tiles::*;
 use world::*;
-
-use std::rc::Rc;
-use std::cell::RefCell;
-
-struct SpriteBuilder {
-    texture : Rc<RefCell<Texture>>,
-    texture_region : Option<TextureRegion>,
-    animation : Option<Animation>,
-}
-
-impl SpriteBuilder {
-    pub fn new(texture : Rc<RefCell<Texture>>) -> SpriteBuilder {
-        SpriteBuilder {
-            texture : texture,
-            texture_region : None,
-            animation : None
-        }
-    }
-    pub fn texture_region(mut self, texture_region : TextureRegion) -> SpriteBuilder {
-        self.texture_region = Some(texture_region);
-        self
-    }
-    pub fn animation(mut self, animation : Animation) -> SpriteBuilder {
-        self.animation = Some(animation);
-        self
-    }
-    pub fn build(self) -> Sprite {
-        Sprite {
-            texture : self.texture,
-            texture_region : self.texture_region,
-            animation : self.animation,
-            state_time : 0f64,
-            color : (255, 255, 255),
-            position : (0, 0)
-        }
-    }
-}
-
-struct Sprite {
-    texture : Rc<RefCell<Texture>>,
-    texture_region : Option<TextureRegion>,
-    animation : Option<Animation>,
-    state_time : f64,
-    pub color : (u8, u8, u8),
-    pub position : (i32, i32)
-}
-
-impl Sprite {
-    pub fn update(&mut self, delta_time : f64) {
-        self.state_time += delta_time;
-    }
-
-    pub fn draw(&self, context : &mut motor::MotorContext) {
-        let mut t = self.texture.borrow_mut();
-        t.set_color_mod(self.color.0, self.color.1, self.color.2);
-        if self.animation.is_some() {
-            let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
-            context.render(&t, texture_region, self.position);
-        } else {
-            context.render(&t, self.texture_region.as_ref().unwrap(), self.position);
-        }
-    }
-}
 
 struct Assets {
     tile_set : TileSet,
@@ -169,7 +108,7 @@ impl motor::MotorApp for App {
 
         let mut s = self.sprite.as_mut().unwrap();
         s.update(delta_time);
-        s.draw(context);
+        context.render_sprite(s);
 
         return done;
     }

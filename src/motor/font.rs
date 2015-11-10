@@ -9,8 +9,6 @@ use sdl2::rect::Rect;
 use sdl2::render::{Texture, Renderer};
 use sdl2_image::LoadTexture;
 
-use sdl2::pixels::Color;
-
 // http://www.angelcode.com/products/bmfont/doc/file_format.html
 const TAG_INFO : &'static str = "info";
 const TAG_COMMON : &'static str = "common";

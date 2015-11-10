@@ -98,14 +98,16 @@ pub trait MotorGraphics {
     fn load_texture(&mut self, path : &Path) -> Texture;
     fn load_font(&mut self, path : &Path) -> font::BitmapFont;
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
+    fn render_sprite(&mut self, sprite : &gfx::Sprite);
 }
 
 impl<'window> MotorGraphics for MotorContext<'window> {
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32)) {
-        self.renderer.copy(texture,
-            Some(texture_region.bounds),
-            Some(sdl2::rect::Rect::new_unwrap(position.0, position.1, texture_region.bounds.width(), texture_region.bounds.height()))
-        );
+        gfx::render_region(&mut self.renderer, texture, texture_region, position);
+    }
+
+    fn render_sprite(&mut self, sprite : &gfx::Sprite) {
+        sprite.render(&mut self.renderer);
     }
 
     fn load_texture(&mut self, path : &Path) -> Texture {
