@@ -7,15 +7,24 @@ pub trait KeyboardListener {
 
 pub struct MotorKeyboard {
     new_keys : HashSet<Keycode>,
-    prev_keys : HashSet<Keycode>
+    prev_keys : HashSet<Keycode>,
+
+    listeners : Vec<Box<KeyboardListener>>
+
+
 }
 
 impl MotorKeyboard {
     pub fn new() -> MotorKeyboard {
         MotorKeyboard {
             new_keys : HashSet::new(),
-            prev_keys : HashSet::new()
+            prev_keys : HashSet::new(),
+            listeners : Vec::new()
         }
+    }
+
+    pub fn add_listener(&mut self, listener : Box<KeyboardListener>) {
+        self.listeners.push(listener);
     }
 
     pub fn update(&mut self, keyboard_state : KeyboardState) {

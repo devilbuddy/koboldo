@@ -3,7 +3,6 @@ extern crate sdl2_image;
 
 pub mod keyboard;
 pub mod mouse;
-pub mod grid;
 pub mod gfx;
 pub mod font;
 mod timer;

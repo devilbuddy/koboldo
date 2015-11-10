@@ -1,7 +1,9 @@
 use motor::{MotorContext, MotorGraphics};
-use motor::grid::Grid;
+
+use world::{Cell};
+use world::grid::Grid;
+
 use tiles::TileSet;
-use world::Cell;
 
 pub fn render_grid(motor_context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &TileSet) {
     for y in 0..grid.height {

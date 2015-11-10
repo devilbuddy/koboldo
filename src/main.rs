@@ -10,13 +10,14 @@ use sdl2::keyboard::{Keycode};
 
 mod motor;
 use motor::MotorGraphics;
-use motor::grid::Grid;
 use motor::gfx::{TextureReference, Animation, TextureRegion, SpriteBuilder, Sprite};
 use motor::font::BitmapFont;
 
+mod world;
+use world::grid::Grid;
+
 mod tiles;
 mod render;
-mod world;
 
 use tiles::*;
 use world::*;
@@ -59,6 +60,7 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
     grid
 }
 
+
 impl motor::MotorApp for App {
     fn init(&mut self, context : &mut motor::MotorContext) {
 
@@ -84,6 +86,8 @@ impl motor::MotorApp for App {
                     .build());
 
         self.assets = Some(assets);
+
+        //context.keyboard.add_listener(||);
     }
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
