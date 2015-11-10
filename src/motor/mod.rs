@@ -81,8 +81,6 @@ impl<'window> MotorGraphics for MotorContext<'window> {
     fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32) {
         nine_patch.render((x, y, w, h), &mut self.renderer);
     }
-
-
 }
 
 pub trait MotorApp {
