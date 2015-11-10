@@ -13,6 +13,10 @@ use sdl2::render::{Renderer, Texture};
 use sdl2_image::{INIT_PNG, LoadTexture};
 
 use std::path::Path;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+pub type TextureReference = Rc<RefCell<Texture>>;
 
 pub struct MotorContext<'window> {
     pub renderer : Renderer<'window>,
@@ -46,12 +50,26 @@ impl<'window> Drop for MotorContext<'window> {
 
 pub trait MotorGraphics {
     fn load_texture(&mut self, path : &Path) -> Texture;
+    fn load_texture_as_ref(&mut self, path : &Path) -> TextureReference;
     fn load_font(&mut self, path : &Path) -> font::BitmapFont;
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
     fn render_sprite(&mut self, sprite : &gfx::Sprite);
+    fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32);
 }
 
 impl<'window> MotorGraphics for MotorContext<'window> {
+    fn load_texture(&mut self, path : &Path) -> Texture {
+        self.renderer.load_texture(path).unwrap()
+    }
+
+    fn load_texture_as_ref(&mut self, path : &Path) -> TextureReference {
+        Rc::new(RefCell::new(self.load_texture(path)))
+    }
+
+    fn load_font(&mut self, path: &Path) -> font::BitmapFont {
+        font::BitmapFont::load(path, &self.renderer).unwrap()
+    }
+
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32)) {
         gfx::render_region(&mut self.renderer, texture, texture_region, position);
     }
@@ -60,13 +78,11 @@ impl<'window> MotorGraphics for MotorContext<'window> {
         sprite.render(&mut self.renderer);
     }
 
-    fn load_texture(&mut self, path : &Path) -> Texture {
-        self.renderer.load_texture(path).unwrap()
+    fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32) {
+        nine_patch.render((x, y, w, h), &mut self.renderer);
     }
 
-    fn load_font(&mut self, path: &Path) -> font::BitmapFont {
-        font::BitmapFont::load(path, &self.renderer).unwrap()
-    }
+
 }
 
 pub trait MotorApp {
