@@ -96,8 +96,6 @@ impl motor::MotorApp for App {
                     .build());
 
         self.assets = Some(assets);
-
-        //context.keyboard.add_listener(||);
     }
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {

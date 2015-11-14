@@ -2,12 +2,13 @@ extern crate sdl2;
 extern crate sdl2_image;
 
 pub mod keyboard;
+pub mod joystick;
 pub mod mouse;
 pub mod gfx;
 pub mod font;
 mod timer;
 
-use sdl2::{EventPump};
+use sdl2::{EventPump, GameControllerSubsystem, JoystickSubsystem};
 use sdl2::event::Event;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::{INIT_PNG, LoadTexture};
@@ -22,17 +23,19 @@ pub struct MotorContext<'window> {
     pub renderer : Renderer<'window>,
     event_pump : EventPump,
     pub keyboard : keyboard::MotorKeyboard,
+    pub joystick : joystick::MotorJoystick,
     pub mouse : mouse::MotorMouse
 }
 
 impl<'window> MotorContext<'window> {
-    pub fn new(renderer : Renderer<'window>, event_pump : EventPump) -> MotorContext<'window> {
+    pub fn new(renderer : Renderer<'window>, event_pump : EventPump, game_controller_subsystem : GameControllerSubsystem, joystick_subsystem : JoystickSubsystem) -> MotorContext<'window> {
         sdl2_image::init(INIT_PNG);
 
         MotorContext {
             renderer : renderer,
             event_pump : event_pump,
             keyboard : keyboard::MotorKeyboard::new(),
+            joystick : joystick::MotorJoystick::new(game_controller_subsystem, joystick_subsystem),
             mouse : mouse::MotorMouse::new()
         }
     }
@@ -103,7 +106,9 @@ pub fn motor_start(window_title : &'static str, window_size : (u32, u32), logica
 
     let mut context = MotorContext::new(
         window.renderer().build().unwrap(),
-        sdl_context.event_pump().unwrap()
+        sdl_context.event_pump().unwrap(),
+        sdl_context.game_controller().unwrap(),
+        sdl_context.joystick().unwrap()
     );
 
     match logical_size {
@@ -123,10 +128,18 @@ pub fn motor_start(window_title : &'static str, window_size : (u32, u32), logica
                 Event::Quit {..} =>  {
                     break 'running;
                 },
-                Event::MouseMotion {..} | Event::MouseButtonDown {..} | Event::MouseButtonUp {..} | Event::MouseWheel {..} => {
+                Event::MouseMotion {..} | Event::MouseButtonDown {..} |
+                Event::MouseButtonUp {..} | Event::MouseWheel {..} => {
                     context.mouse.handle_event(event);
+                },
+                Event::ControllerAxisMotion {..} | Event::ControllerButtonDown {..} |
+                Event::ControllerButtonUp {..} | Event::ControllerDeviceAdded {..} |
+                Event::ControllerDeviceRemapped {..} | Event::ControllerDeviceRemoved {..} => {
+                    context.joystick.handle_event(event);
+                },
+                _ => {
+                    //println!("unhandled event {:?}", event);
                 }
-                _ => {}
             }
         }
 

@@ -10,8 +10,6 @@ pub struct MotorKeyboard {
     prev_keys : HashSet<Keycode>,
 
     listeners : Vec<Box<KeyboardListener>>
-
-
 }
 
 impl MotorKeyboard {
