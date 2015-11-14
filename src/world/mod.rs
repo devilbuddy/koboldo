@@ -1,9 +1,21 @@
 pub mod grid;
 
+use rand::{Rng, Rand};
+
 #[derive(PartialEq, Eq, Hash)]
 pub enum Tile {
     Grass,
     Water
+}
+
+impl Rand for Tile {
+     fn rand<R: Rng>(rng: &mut R) -> Tile {
+         if rng.gen::<bool>() {
+             Tile::Grass
+         } else {
+             Tile::Water
+         }
+     }
 }
 
 pub struct Point {
@@ -22,9 +34,9 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub fn new() -> Cell {
+    pub fn new(tile : Tile) -> Cell {
         Cell {
-            tile : Tile::Grass,
+            tile : tile,
             entity : None
         }
     }

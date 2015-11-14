@@ -2,6 +2,7 @@
 name = "rust-sdl2-game"
 version = "0.1.0"
 dependencies = [
+ "rand 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2_image 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

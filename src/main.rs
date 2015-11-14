@@ -1,7 +1,10 @@
 extern crate sdl2;
 extern crate sdl2_image;
+extern crate rand;
 
 use std::path::Path;
+
+use rand::Rng;
 
 use sdl2::pixels::Color;
 use sdl2::keyboard::{Keycode};
@@ -47,9 +50,12 @@ impl App {
 fn make_grid(width : u32, height : u32) -> Grid<Cell> {
     let mut grid = Grid::<Cell>::new(width, height);
 
+    let mut rng = rand::thread_rng();
+
     for y in 0..grid.height {
         for x in 0..grid.width {
-            grid.set(x, y, Cell::new());
+            let tile = rng.gen::<Tile>();
+            grid.set(x, y, Cell::new(tile));
         }
     }
 
