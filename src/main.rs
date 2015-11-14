@@ -113,6 +113,26 @@ impl motor::MotorApp for App {
         y += font.line_height;
         font.draw_str("0123456789 !:\"#¤%&/()=", 20, y, &mut context.renderer);
 
+        {
+            let mut s = &mut self.sprites[0];
+            let mut x = s.position.0;
+            let mut y = s.position.1;
+            let d =  (delta_time * 100f64) as i32;
+            if context.keyboard.is_key_pressed(Keycode::Left) {
+                x -= d;
+            }
+            if context.keyboard.is_key_pressed(Keycode::Right) {
+                x += d;
+            }
+            if context.keyboard.is_key_pressed(Keycode::Up) {
+                y -= d;
+            }
+            if context.keyboard.is_key_pressed(Keycode::Down) {
+                y += d;
+            }
+            s.position = (x,y);
+        }
+
         for s in self.sprites.iter_mut() {
             s.update(delta_time);
             context.render_sprite(s);

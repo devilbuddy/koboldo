@@ -53,7 +53,7 @@ pub struct SpriteBuilder {
     texture : Rc<RefCell<Texture>>,
     texture_region : Option<TextureRegion>,
     animation : Option<Animation>,
-    position : (i32, i32)
+    pub position : (i32, i32)
 }
 
 impl SpriteBuilder {
