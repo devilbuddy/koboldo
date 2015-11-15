@@ -8,6 +8,7 @@ use rand::Rng;
 
 use sdl2::pixels::Color;
 use sdl2::keyboard::{Keycode};
+use sdl2::controller::{Button};
 
 mod motor;
 use motor::{MotorGraphics, TextureReference};
@@ -34,7 +35,8 @@ struct Assets {
 struct App {
     state_time : f64,
     assets : Option<Assets>,
-    sprites : Vec<Sprite>
+    sprites : Vec<Sprite>,
+    controller_id : Option<i32>
 }
 
 impl App {
@@ -42,7 +44,8 @@ impl App {
         App {
             state_time : 0f64,
             assets : None,
-            sprites : Vec::new()
+            sprites : Vec::new(),
+            controller_id : None
         }
     }
 }
@@ -117,11 +120,32 @@ impl motor::MotorApp for App {
         y += font.line_height;
         font.draw_str("0123456789 !:\"#¤%&/()=", 20, y, &mut context.renderer);
 
+        if self.controller_id.is_none() {
+            self.controller_id = context.joystick.get_controller_id();
+        }
+
         {
             let mut s = &mut self.sprites[0];
             let mut x = s.position.0;
             let mut y = s.position.1;
             let d =  (delta_time * 100f64) as i32;
+
+            if self.controller_id.is_some() {
+                let c = context.joystick.get_controller(self.controller_id.unwrap());
+                if c.game_controller.button(Button::DPadLeft) {
+                    x -= d;
+                }
+                if c.game_controller.button(Button::DPadRight) {
+                    x += d;
+                }
+                if c.game_controller.button(Button::DPadUp) {
+                    y -= d;
+                }
+                if c.game_controller.button(Button::DPadDown) {
+                    y += d;
+                }
+            }
+
             if context.keyboard.is_key_pressed(Keycode::Left) {
                 x -= d;
             }

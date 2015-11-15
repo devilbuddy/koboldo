@@ -8,7 +8,7 @@ use std::fmt;
 pub struct Controller {
     id : i32,
     name : String,
-    game_controller : GameController
+    pub game_controller : GameController
 }
 
 impl fmt::Debug for Controller {
@@ -19,54 +19,28 @@ impl fmt::Debug for Controller {
 
 pub struct MotorJoystick {
     game_controller_subsystem : GameControllerSubsystem,
-    joystick_subsystem : JoystickSubsystem,
     controllers : Vec<Controller>
 }
 
 impl MotorJoystick {
-    pub fn new(game_controller_subsystem : GameControllerSubsystem, joystick_subsystem : JoystickSubsystem) -> MotorJoystick {
+    pub fn new(game_controller_subsystem : GameControllerSubsystem) -> MotorJoystick {
         MotorJoystick {
             game_controller_subsystem : game_controller_subsystem,
-            joystick_subsystem : joystick_subsystem,
             controllers : Vec::new()
         }
     }
 
-    fn add_controller(&mut self, id : i32) {
-        println!("add_controller {:?}", id);
-
-        let _id = id as u32;
-        if self.game_controller_subsystem.is_game_controller(_id) {
-            match self.game_controller_subsystem.open(_id) {
-               Ok(c) => {
-                   let controller = Controller {
-                       id : id,
-                       name : c.name(),
-                       game_controller : c,
-                   };
-                   println!("added {:?}", controller);
-                   self.controllers.push(controller);
-               },
-               Err(e) => {
-                   println!("failed: {:?}", e)
-               }
-           }
-        } else {
-             println!("{} is not a game controller", id);
+    pub fn get_controller_id(&self) -> Option<i32> {
+        println!("get_controller_id {}", self.controllers.len());
+        if self.controllers.len() > 0 {
+            return Some(self.controllers[0].id);
         }
+        None
     }
 
-    fn remove_controller(&mut self, id : i32) {
-        println!("remove_controller {}", id);
-
-        let removed = self.controllers.iter()
-                        .position(|ref c| c.id == id)
-                        .map(|i| self.controllers.remove(i));
-
-        if removed.is_some() {
-            println!("removed {:?}", removed.unwrap());
-        }
-
+    pub fn get_controller(&self, id : i32) -> &Controller {
+        let index = self.controllers.iter().position(|ref c| c.id == id).unwrap();
+        &self.controllers[index]
     }
 
     pub fn handle_event(&mut self, event : Event) {
@@ -100,5 +74,40 @@ impl MotorJoystick {
                 //println!("joystick unhandled event {:?}", event );
             }
        }
+    }
+
+    fn add_controller(&mut self, id : i32) {
+        println!("add_controller {:?}", id);
+        let _id = id as u32;
+        if self.game_controller_subsystem.is_game_controller(_id) {
+            match self.game_controller_subsystem.open(_id) {
+               Ok(c) => {
+                   let controller = Controller {
+                       id : id,
+                       name : c.name(),
+                       game_controller : c,
+                   };
+                   println!("added {:?}", controller);
+                   self.controllers.push(controller);
+               },
+               Err(e) => {
+                   println!("failed: {:?}", e)
+               }
+           }
+        } else {
+             println!("{} is not a game controller", id);
+        }
+    }
+
+    fn remove_controller(&mut self, id : i32) {
+        println!("remove_controller {}", id);
+
+        let removed = self.controllers.iter()
+                        .position(|ref c| c.id == id)
+                        .map(|i| self.controllers.remove(i));
+
+        if removed.is_some() {
+            println!("removed {:?}", removed.unwrap());
+        }
     }
 }

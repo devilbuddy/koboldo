@@ -28,14 +28,14 @@ pub struct MotorContext<'window> {
 }
 
 impl<'window> MotorContext<'window> {
-    pub fn new(renderer : Renderer<'window>, event_pump : EventPump, game_controller_subsystem : GameControllerSubsystem, joystick_subsystem : JoystickSubsystem) -> MotorContext<'window> {
+    pub fn new(renderer : Renderer<'window>, event_pump : EventPump, game_controller_subsystem : GameControllerSubsystem) -> MotorContext<'window> {
         sdl2_image::init(INIT_PNG);
 
         MotorContext {
             renderer : renderer,
             event_pump : event_pump,
             keyboard : keyboard::MotorKeyboard::new(),
-            joystick : joystick::MotorJoystick::new(game_controller_subsystem, joystick_subsystem),
+            joystick : joystick::MotorJoystick::new(game_controller_subsystem),
             mouse : mouse::MotorMouse::new()
         }
     }
@@ -107,8 +107,7 @@ pub fn motor_start(window_title : &'static str, window_size : (u32, u32), logica
     let mut context = MotorContext::new(
         window.renderer().build().unwrap(),
         sdl_context.event_pump().unwrap(),
-        sdl_context.game_controller().unwrap(),
-        sdl_context.joystick().unwrap()
+        sdl_context.game_controller().unwrap()
     );
 
     match logical_size {
