@@ -20,6 +20,7 @@ use world::grid::Grid;
 
 mod tiles;
 mod render;
+mod generator;
 
 use tiles::*;
 use world::*;
@@ -92,7 +93,7 @@ impl motor::MotorApp for App {
 
         self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
-                    .position((40, 65))
+                    .position((40f64, 65f64))
                     .build());
         self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
                     .texture_region(TextureRegion::new(16, 8, 8, 8))
@@ -113,12 +114,13 @@ impl motor::MotorApp for App {
         render::render_grid(context, &assets.grid, &assets.tile_set);
 
         let font = &assets.font;
-        let mut y = 20;
-        font.draw_str("ABCDEFGHIJGKMNOPQRSTUVWXYZ", 20, y, &mut context.renderer);
+        let mut y = 0;
+        let x = 80;
+        font.draw_str("ABCDEFGHIJGKMNOPQRSTUVWXYZ", x, y, &mut context.renderer);
         y += font.line_height;
-        font.draw_str("abcdefghijklmnopqrstuvwxyz", 20, y, &mut context.renderer);
+        font.draw_str("abcdefghijklmnopqrstuvwxyz", x, y, &mut context.renderer);
         y += font.line_height;
-        font.draw_str("0123456789 !:\"#¤%&/()=", 20, y, &mut context.renderer);
+        font.draw_str("0123456789 !:\"#¤%&/()=", x, y, &mut context.renderer);
 
         if self.controller_id.is_none() {
             self.controller_id = context.joystick.get_controller_id();
@@ -128,7 +130,7 @@ impl motor::MotorApp for App {
             let mut s = &mut self.sprites[0];
             let mut x = s.position.0;
             let mut y = s.position.1;
-            let d =  (delta_time * 100f64) as i32;
+            let d =  delta_time * 50f64;
 
             if self.controller_id.is_some() {
                 let c = context.joystick.get_controller(self.controller_id.unwrap());

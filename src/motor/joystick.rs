@@ -31,7 +31,7 @@ impl MotorJoystick {
     }
 
     pub fn get_controller_id(&self) -> Option<i32> {
-        println!("get_controller_id {}", self.controllers.len());
+        //println!("get_controller_id {}", self.controllers.len());
         if self.controllers.len() > 0 {
             return Some(self.controllers[0].id);
         }
