@@ -19,9 +19,11 @@ use world::grid::Grid;
 mod tiles;
 mod render;
 mod generator;
+mod camera;
 
 use tiles::*;
 use world::*;
+use camera::*;
 
 struct Assets {
     tile_set : TileSet,
@@ -31,32 +33,36 @@ struct Assets {
     nine_patch : NinePatch
 }
 
+
 struct App {
     state_time : f64,
     assets : Option<Assets>,
     sprites : Vec<Sprite>,
-    controller_id : Option<i32>
+    controller_id : Option<i32>,
+    camera : Camera
 }
 
 impl App {
-    pub fn new() -> App {
+    pub fn new(display_size : (u32, u32)) -> App {
         App {
             state_time : 0f64,
             assets : None,
             sprites : Vec::new(),
-            controller_id : None
+            controller_id : None,
+            camera : Camera::new(display_size)
         }
     }
 }
 
+
 fn make_grid(width : u32, height : u32) -> Grid<Cell> {
+    println!("make grid");
 
     let template = generator::make_level(width, height);
-    let mut grid = Grid::<Cell>::new(width, height);
+    println!("generated level");
 
-
-    let mut min_x = grid.width;
-    let mut min_y = grid.height;
+    let mut min_x = template.width;
+    let mut min_y = template.height;
     let mut max_x = 0;
     let mut max_y = 0;
 
@@ -83,29 +89,38 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
     }
 
     println!("{:?} {:?} {:?} {:?}", min_x, max_x, min_y, max_y);
+    println!("generating tiles");
+
+    let w = max_x - min_x + 3;
+    let h = max_y - min_y + 3;
+
+    let cell_size = 3;
+
+    let mut grid = Grid::<Cell>::new(w * cell_size, h * cell_size);
 
     let mut x = 0;
     let mut y = 0;
     for ty in (min_y - 1)..(max_y + 2) {
         for tx in (min_x - 1)..(max_x + 2) {
-            match *template.get(tx, ty).unwrap() {
-                generator::Tile::Floor => {
-                    grid.set(x, y, Cell::new(Tile::Grass));
-                },
-                generator::Tile::Wall => {
-                    grid.set(x, y, Cell::new(Tile::Water));
+
+            grid.fill(x, y, cell_size, cell_size, || {
+                let tile;
+                match *template.get(tx, ty).unwrap() {
+                    generator::Tile::Floor => {
+                        tile = Tile::Grass;
+                    },
+                    generator::Tile::Wall => {
+                        tile = Tile::Water;
+                    }
                 }
-            }
-            x += 1;
+                Cell::new(tile)
+            });
+            x += cell_size;
         }
         x = 0;
-        y += 1;
+        y += cell_size;
     }
-
-
-    let entity = Entity { position : Point { x: 0, y: 0}};
-    grid.get_mut(0, 0).unwrap().set_entity(entity);
-
+    println!("generated tiles");
     grid
 }
 
@@ -134,7 +149,7 @@ impl motor::MotorApp for App {
 
         self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
-                    .position((40f64, 65f64))
+                    .position((96f64, 71f64))
                     .build());
         self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
                     .texture_region(TextureRegion::new(16, 8, 8, 8))
@@ -154,11 +169,11 @@ impl motor::MotorApp for App {
 
         let assets = self.assets.as_mut().unwrap();
 
-        if context.keyboard.is_key_just_pressed(Keycode::R) {
+        if context.keyboard.is_key_pressed(Keycode::R) {
             assets.grid = make_grid(100, 100);
         }
 
-        render::render_grid(context, &assets.grid, &assets.tile_set);
+        render::render_grid(context, &assets.grid, &assets.tile_set, &self.camera);
 
         let font = &assets.font;
         let mut y = 0;
@@ -174,9 +189,8 @@ impl motor::MotorApp for App {
         }
 
         {
-            let mut s = &mut self.sprites[0];
-            let mut x = s.position.0;
-            let mut y = s.position.1;
+            let mut x = self.camera.position.0;
+            let mut y = self.camera.position.1;
             let d =  delta_time * 50f64;
 
             if self.controller_id.is_some() {
@@ -207,7 +221,7 @@ impl motor::MotorApp for App {
             if context.keyboard.is_key_pressed(Keycode::Down) {
                 y += d;
             }
-            s.position = (x,y);
+            self.camera.position = (x,y);
         }
 
         for s in self.sprites.iter_mut() {
@@ -223,6 +237,7 @@ impl motor::MotorApp for App {
 }
 
 pub fn main() {
-    let mut app = App::new();
-    motor::motor_start("rust-sdl2-game", (800, 600), Some((200, 150)), &mut app)
+    let display_size = (200, 150);
+    let mut app = App::new(display_size);
+    motor::motor_start("rust-sdl2-game", (800, 600), Some(display_size), &mut app)
 }

@@ -32,4 +32,15 @@ impl <T> Grid <T> {
         let index = self.width * y + x;
         self.cells[index as usize] = Some(element);
     }
+
+    pub fn fill<F>(&mut self, x : u32, y: u32, w: u32, h : u32, f : F)
+        where F : Fn() -> T {
+        for yy in y..(y + h) {
+            for xx in x..(x + w) {
+                let index = self.width * yy + xx;
+                self.cells[index as usize] = Some(f());
+            }
+        }
+    }
+
 }

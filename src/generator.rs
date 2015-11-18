@@ -262,6 +262,7 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
                 floor_count += place_room(make_room_config.random_room_type(), floor_maker.x, floor_maker.y, &mut grid);
             }
 
+            // spawn new
             if rand::thread_rng().gen_weighted_bool(chance_to_spawn_new_floor_maker) {
                 new_floor_makers.push(FloorMaker::new(floor_maker.x, floor_maker.y));
                 println!("spawned new floormaker");
@@ -275,19 +276,27 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
         let num_floor_makers = floor_makers.len();
         if num_floor_makers > 1 {
             let mut rng = rand::thread_rng();
+            let mut num_left = num_floor_makers;
             let chance_to_destroy = (100 - num_floor_makers * 10) as u32;
             println!("chance_to_destroy: (one in {:?})", chance_to_destroy);
             // save in vector - return true
             floor_makers.retain(|ref floor_maker| {
                 let mut r = true;
-                if floor_maker.step_count > 0 {
-                    r = rng.gen_weighted_bool(chance_to_destroy);
+                if num_left > 1 {
+                    if floor_maker.step_count > 0 {
+                        r = rng.gen_weighted_bool(chance_to_destroy);
+                    }
+                    if !r {
+                        num_left -= 1;
+                    }
                 }
                 println!("r {:?}", r);
                 r
             });
         }
-
+        if floor_makers.len() == 0 {
+            panic!("no floormakers left - shoudnt happen")
+        }
 
         if floor_count > 100 {
             done = true;

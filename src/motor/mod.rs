@@ -100,6 +100,7 @@ pub fn motor_start(window_title : &'static str, window_size : (u32, u32), logica
 
     let window = video.window(window_title, window_size.0, window_size.1)
         .position_centered()
+        //.borderless()
         .opengl()
         .build()
         .unwrap();
