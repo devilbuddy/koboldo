@@ -28,6 +28,45 @@ impl Rand for Direction {
      }
 }
 
+impl Direction {
+    pub fn turn(&self, turn_type : TurnType) -> Direction {
+        match *self {
+            Direction::Up => {
+                match turn_type {
+                    TurnType::Left => Direction::Left,
+                    TurnType::Right => Direction::Right,
+                    TurnType::UTurn => Direction::Down,
+                    _=> Direction::Up
+                }
+            },
+            Direction::Down => {
+                match turn_type {
+                    TurnType::Left => Direction::Right,
+                    TurnType::Right => Direction::Left,
+                    TurnType::UTurn => Direction::Up,
+                    _=> Direction::Down
+                }
+            },
+            Direction::Left => {
+                match turn_type {
+                    TurnType::Left => Direction::Down,
+                    TurnType::Right => Direction::Up,
+                    TurnType::UTurn => Direction::Right,
+                    _=> Direction::Left
+                }
+            },
+            Direction::Right => {
+                match turn_type {
+                    TurnType::Left => Direction::Up,
+                    TurnType::Right => Direction::Down,
+                    TurnType::UTurn => Direction::Left,
+                    _=> Direction::Right
+                }
+            }
+        }
+    }
+}
+
 pub enum Tile {
     Wall,
     Floor
@@ -78,7 +117,6 @@ impl TurnChanceConfig {
     }
 }
 
-
 #[derive (Clone, Copy, Debug)]
 enum RoomType {
     None,
@@ -119,79 +157,42 @@ impl MakeRoomConfig {
     }
 }
 
-fn turn(direction : &Direction, turn_type : TurnType) -> Direction {
-    match *direction {
-        Direction::Up => {
-            match turn_type {
-                TurnType::Left => Direction::Left,
-                TurnType::Right => Direction::Right,
-                TurnType::UTurn => Direction::Down,
-                _=> Direction::Up
-            }
-        },
-        Direction::Down => {
-            match turn_type {
-                TurnType::Left => Direction::Right,
-                TurnType::Right => Direction::Left,
-                TurnType::UTurn => Direction::Up,
-                _=> Direction::Down
-            }
-        },
-        Direction::Left => {
-            match turn_type {
-                TurnType::Left => Direction::Down,
-                TurnType::Right => Direction::Up,
-                TurnType::UTurn => Direction::Right,
-                _=> Direction::Left
-            }
-        },
-        Direction::Right => {
-            match turn_type {
-                TurnType::Left => Direction::Up,
-                TurnType::Right => Direction::Down,
-                TurnType::UTurn => Direction::Left,
-                _=> Direction::Right
-            }
-        }
-    }
-}
-
-
 struct FloorMaker {
     x : u32,
     y : u32,
     direction : Direction,
     turn_chance_config : TurnChanceConfig,
-    make_room_config : MakeRoomConfig
+    step_count : u32
 }
 
 // http://www.vlambeer.com/2013/04/02/random-level-generation-in-wasteland-kings/
 
 impl FloorMaker {
 
-    pub fn new() -> FloorMaker {
+    pub fn new(x : u32, y : u32) -> FloorMaker {
         FloorMaker {
-            x : 50,
-            y : 50,
+            x : x,
+            y : y,
             direction : rand::thread_rng().gen::<Direction>(),
-            turn_chance_config  : TurnChanceConfig::new(20, 20, 20),
-            make_room_config : MakeRoomConfig::new(10, 10)
+            turn_chance_config  : TurnChanceConfig::new(10, 10, 10),
+            step_count : 0
         }
     }
 
     pub fn step(&mut self) {
         let turn_type = self.turn_chance_config.random_turn();
-        self.direction = turn(&self.direction, turn_type);
+        self.direction = self.direction.turn(turn_type);
         match self.direction {
             Direction::Up => self.y += 1,
             Direction::Down => self.y -= 1,
             Direction::Left => self.x -= 1,
             Direction::Right => self.x += 1,
         }
+        self.step_count += 1;
     }
 }
 
-fn place_wall_if_not_wall(x : u32, y : u32, grid : &mut Grid<Tile>) -> bool{
+fn place_floor(x : u32, y : u32, grid : &mut Grid<Tile>) -> bool{
     if grid.get(x, y).is_some() {
         match *grid.get(x, y).unwrap() {
             Tile::Wall => {
@@ -223,7 +224,7 @@ fn place_room(room_type : RoomType, x_start : u32, y_start : u32, grid :  &mut G
 
     for y in y_start..(y_start + h) {
         for x in x_start..(x_start + w) {
-            if place_wall_if_not_wall(x, y, grid) {
+            if place_floor(x, y, grid) {
                 floor_count += 1;
             }
         }
@@ -240,35 +241,52 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
         }
     }
 
+    let make_room_config = MakeRoomConfig::new(10, 10);
+
     let mut floor_makers = Vec::<FloorMaker>::new();
-    floor_makers.push(FloorMaker::new());
+    floor_makers.push(FloorMaker::new(50, 50));
 
     let mut done = false;
     let mut floor_count = 0;
     while !done {
         let mut new_floor_makers = Vec::new();
 
-        let chance_to_spawn_new_floor_maker = (100 - floor_makers.len() * 5) as u32;
-
+        //println!("floor_makers:{:?}", floor_makers.len());
+        let chance_to_spawn_new_floor_maker = (floor_makers.len() * 10) as u32;
+        //println!("chance_to_spawn_new_floor_maker (one in :{:?})", chance_to_spawn_new_floor_maker);
         for floor_maker in floor_makers.iter_mut() {
             floor_maker.step();
 
-            if place_wall_if_not_wall(floor_maker.x, floor_maker.y, &mut grid) {
+            if place_floor(floor_maker.x, floor_maker.y, &mut grid) {
                 floor_count += 1;
-                floor_count += place_room(floor_maker.make_room_config.random_room_type(), floor_maker.x, floor_maker.y, &mut grid);
+                floor_count += place_room(make_room_config.random_room_type(), floor_maker.x, floor_maker.y, &mut grid);
             }
 
             if rand::thread_rng().gen_weighted_bool(chance_to_spawn_new_floor_maker) {
+                new_floor_makers.push(FloorMaker::new(floor_maker.x, floor_maker.y));
                 println!("spawned new floormaker");
-                let mut new_floor_maker = FloorMaker::new();
-                new_floor_maker.x = floor_maker.x;
-                new_floor_maker.y = floor_maker.y;
-                new_floor_makers.push(new_floor_maker);
             }
         }
 
+        // add spawned floor_makers
         floor_makers.extend(new_floor_makers);
 
+        // remove floor_makers
+        let num_floor_makers = floor_makers.len();
+        if num_floor_makers > 1 {
+            let mut rng = rand::thread_rng();
+            let chance_to_destroy = (100 - num_floor_makers * 10) as u32;
+            println!("chance_to_destroy: (one in {:?})", chance_to_destroy);
+            // save in vector - return true
+            floor_makers.retain(|ref floor_maker| {
+                let mut r = true;
+                if floor_maker.step_count > 0 {
+                    r = rng.gen_weighted_bool(chance_to_destroy);
+                }
+                println!("r {:?}", r);
+                r
+            });
+        }
 
 
         if floor_count > 100 {

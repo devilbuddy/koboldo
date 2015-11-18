@@ -55,9 +55,40 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
     let mut grid = Grid::<Cell>::new(width, height);
 
 
+    let mut min_x = grid.width;
+    let mut min_y = grid.height;
+    let mut max_x = 0;
+    let mut max_y = 0;
+
     for y in 0..height {
         for x in 0..width {
             match *template.get(x, y).unwrap() {
+                generator::Tile::Floor => {
+                    if y < min_y {
+                        min_y = y;
+                    }
+                    if y >= max_y {
+                        max_y = y;
+                    }
+                    if x < min_x {
+                        min_x = x;
+                    }
+                    if x >= max_x {
+                        max_x = x;
+                    }
+                },
+                _ => {}
+            }
+        }
+    }
+
+    println!("{:?} {:?} {:?} {:?}", min_x, max_x, min_y, max_y);
+
+    let mut x = 0;
+    let mut y = 0;
+    for ty in (min_y - 1)..(max_y + 2) {
+        for tx in (min_x - 1)..(max_x + 2) {
+            match *template.get(tx, ty).unwrap() {
                 generator::Tile::Floor => {
                     grid.set(x, y, Cell::new(Tile::Grass));
                 },
@@ -65,8 +96,12 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
                     grid.set(x, y, Cell::new(Tile::Water));
                 }
             }
+            x += 1;
         }
+        x = 0;
+        y += 1;
     }
+
 
     let entity = Entity { position : Point { x: 0, y: 0}};
     grid.get_mut(0, 0).unwrap().set_entity(entity);
@@ -189,5 +224,5 @@ impl motor::MotorApp for App {
 
 pub fn main() {
     let mut app = App::new();
-    motor::motor_start("rust-sdl2-game", (800, 600), Some((800, 600)), &mut app)
+    motor::motor_start("rust-sdl2-game", (800, 600), Some((200, 150)), &mut app)
 }
