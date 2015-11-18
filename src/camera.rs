@@ -1,6 +1,6 @@
 pub struct Camera {
     pub position : (f64, f64),
-    size : (u32, u32)
+    pub size : (u32, u32)
 }
 
 impl Camera {

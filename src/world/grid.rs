@@ -20,7 +20,10 @@ impl <T> Grid <T> {
 
     pub fn get(&self, x : u32, y : u32) -> Option<&T> {
         let index = self.width * y + x;
-        return self.cells[index as usize].as_ref();
+        if (index as usize) < self.cells.len() {
+            return self.cells[index as usize].as_ref();
+        }
+        None
     }
 
     pub fn get_mut(&mut self, x : u32, y : u32) -> Option<&mut T> {

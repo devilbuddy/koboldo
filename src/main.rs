@@ -156,6 +156,8 @@ impl motor::MotorApp for App {
                     .build());
 
         self.assets = Some(assets);
+
+        self.camera.position = (96f64, 71f64);
     }
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
