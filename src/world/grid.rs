@@ -28,12 +28,17 @@ impl <T> Grid <T> {
 
     pub fn get_mut(&mut self, x : u32, y : u32) -> Option<&mut T> {
         let index = self.width * y + x;
-        return self.cells[index as usize].as_mut();
+        if (index as usize) < self.cells.len() {
+            return self.cells[index as usize].as_mut();
+        }
+        None
     }
 
     pub fn set(&mut self, x : u32, y: u32, element : T) {
         let index = self.width * y + x;
-        self.cells[index as usize] = Some(element);
+        if (index as usize) < self.cells.len() {
+            self.cells[index as usize] = Some(element);
+        }
     }
 
     pub fn fill<F>(&mut self, x : u32, y: u32, w: u32, h : u32, f : F)
@@ -41,7 +46,7 @@ impl <T> Grid <T> {
         for yy in y..(y + h) {
             for xx in x..(x + w) {
                 let index = self.width * yy + xx;
-                self.cells[index as usize] = Some(f());
+                self.set(xx, yy, f());
             }
         }
     }
