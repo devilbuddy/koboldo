@@ -1,7 +1,6 @@
-use sdl2::{EventPump, GameControllerSubsystem, JoystickSubsystem};
+use sdl2::{GameControllerSubsystem};
 use sdl2::event::Event;
 use sdl2::controller::GameController;
-use sdl2::joystick::Joystick;
 
 use std::fmt;
 

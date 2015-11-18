@@ -8,7 +8,7 @@ pub mod gfx;
 pub mod font;
 mod timer;
 
-use sdl2::{EventPump, GameControllerSubsystem, JoystickSubsystem};
+use sdl2::{EventPump, GameControllerSubsystem};
 use sdl2::event::Event;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::{INIT_PNG, LoadTexture};
@@ -96,7 +96,7 @@ pub fn motor_start(window_title : &'static str, window_size : (u32, u32), logica
     let video = sdl_context.video().unwrap();
 
     let mut timer = timer::MotorTimer::new(60, sdl_context.timer().unwrap());
-    timer.set_enable_fps_log(true);
+    timer.set_enable_fps_log(false);
 
     let window = video.window(window_title, window_size.0, window_size.1)
         .position_centered()

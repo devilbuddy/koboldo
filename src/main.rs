@@ -4,8 +4,6 @@ extern crate rand;
 
 use std::path::Path;
 
-use rand::Rng;
-
 use sdl2::pixels::Color;
 use sdl2::keyboard::{Keycode};
 use sdl2::controller::{Button};
@@ -52,14 +50,21 @@ impl App {
 }
 
 fn make_grid(width : u32, height : u32) -> Grid<Cell> {
+
+    let template = generator::make_level(width, height);
     let mut grid = Grid::<Cell>::new(width, height);
 
-    let mut rng = rand::thread_rng();
 
-    for y in 0..grid.height {
-        for x in 0..grid.width {
-            let tile = rng.gen::<Tile>();
-            grid.set(x, y, Cell::new(tile));
+    for y in 0..height {
+        for x in 0..width {
+            match *template.get(x, y).unwrap() {
+                generator::Tile::Floor => {
+                    grid.set(x, y, Cell::new(Tile::Grass));
+                },
+                generator::Tile::Wall => {
+                    grid.set(x, y, Cell::new(Tile::Water));
+                }
+            }
         }
     }
 
@@ -73,6 +78,7 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
 impl motor::MotorApp for App {
     fn init(&mut self, context : &mut motor::MotorContext) {
 
+
         let mut tile_set = TileSet::new(context.load_texture(&Path::new("assets/level_assets.png")));
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
         tile_set.add_tile(Tile::Water, TextureRegion::new(0, 8, 8, 8));
@@ -85,7 +91,7 @@ impl motor::MotorApp for App {
 
         let assets = Assets {
             tile_set : tile_set,
-            grid : make_grid(10, 10),
+            grid : make_grid(100, 100),
             font : context.load_font(&Path::new("assets/04b_03.fnt")),
             monster_texture : context.load_texture_as_ref(&Path::new("assets/monster_assets.png")),
             nine_patch : nine_patch
@@ -107,9 +113,15 @@ impl motor::MotorApp for App {
         if context.keyboard.is_key_pressed(Keycode::Escape) {
             done = true;
         }
+
+
         self.state_time += delta_time;
 
         let assets = self.assets.as_mut().unwrap();
+
+        if context.keyboard.is_key_just_pressed(Keycode::R) {
+            assets.grid = make_grid(100, 100);
+        }
 
         render::render_grid(context, &assets.grid, &assets.tile_set);
 
@@ -177,5 +189,5 @@ impl motor::MotorApp for App {
 
 pub fn main() {
     let mut app = App::new();
-    motor::motor_start("rust-sdl2-game", (800, 600), Some((200, 150)), &mut app)
+    motor::motor_start("rust-sdl2-game", (800, 600), Some((800, 600)), &mut app)
 }
