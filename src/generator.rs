@@ -206,7 +206,6 @@ fn place_floor(x : u32, y : u32, grid : &mut Grid<Tile>) -> bool{
 }
 
 fn place_room(room_type : RoomType, x_start : u32, y_start : u32, grid :  &mut Grid<Tile>) -> u32 {
-    //println!("place_room {:?}", room_type);
     let mut w = 0;
     let mut h = 0;
     let mut floor_count = 0;
@@ -232,6 +231,11 @@ fn place_room(room_type : RoomType, x_start : u32, y_start : u32, grid :  &mut G
     floor_count
 }
 
+pub struct Level {
+    grid : Grid<Tile>,
+    start : (u32, u32)
+}
+
 pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
     let mut grid = Grid::<Tile>::new(width, height);
     // fill with walls
@@ -251,9 +255,8 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
     while !done {
         let mut new_floor_makers = Vec::new();
 
-        //println!("floor_makers:{:?}", floor_makers.len());
         let chance_to_spawn_new_floor_maker = (floor_makers.len() * 10) as u32;
-        //println!("chance_to_spawn_new_floor_maker (one in :{:?})", chance_to_spawn_new_floor_maker);
+
         for floor_maker in floor_makers.iter_mut() {
             floor_maker.step();
 
@@ -265,7 +268,6 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
             // spawn new
             if rand::thread_rng().gen_weighted_bool(chance_to_spawn_new_floor_maker) {
                 new_floor_makers.push(FloorMaker::new(floor_maker.x, floor_maker.y));
-                println!("spawned new floormaker");
             }
         }
 
@@ -278,7 +280,7 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
             let mut rng = rand::thread_rng();
             let mut num_left = num_floor_makers;
             let chance_to_destroy = (100 - num_floor_makers * 10) as u32;
-            println!("chance_to_destroy: (one in {:?})", chance_to_destroy);
+
             // save in vector - return true
             floor_makers.retain(|ref floor_maker| {
                 let mut r = true;
@@ -290,7 +292,6 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
                         num_left -= 1;
                     }
                 }
-                println!("r {:?}", r);
                 r
             });
         }
@@ -298,7 +299,7 @@ pub fn make_level(width : u32, height : u32) -> Grid<Tile> {
             panic!("no floormakers left - shoudnt happen")
         }
 
-        if floor_count > 100 {
+        if floor_count > 110 {
             done = true;
         }
     }
