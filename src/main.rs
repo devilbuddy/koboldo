@@ -102,15 +102,14 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
     let mut y = 0;
     for ty in (min_y - 1)..(max_y + 2) {
         for tx in (min_x - 1)..(max_x + 2) {
-
             grid.fill(x, y, cell_size, cell_size, || {
                 let tile;
                 match *template.get(tx, ty).unwrap() {
                     generator::Tile::Floor => {
-                        tile = Tile::Grass;
+                        tile = Tile::Floor;
                     },
                     generator::Tile::Wall => {
-                        tile = Tile::Water;
+                        tile = Tile::Solid;
                     }
                 }
                 Cell::new(tile)
@@ -120,6 +119,26 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
         x = 0;
         y += cell_size;
     }
+
+    // "autotile"
+    for y in 0..grid.height {
+        for x in 0..grid.width {
+            let mut below_is_floor = false;
+            {
+                let below = grid.get(x, y + 1);
+                if below.is_some() && below.unwrap().tile == Tile::Floor {
+                    below_is_floor = true;
+                }
+            }
+
+            let mut cell = grid.get_mut(x, y).unwrap();
+            if cell.tile == Tile::Solid && below_is_floor {
+                cell.tile = Tile::Wall;
+            }
+
+        }
+    }
+
     println!("generated tiles");
     grid
 }
@@ -132,6 +151,10 @@ impl motor::MotorApp for App {
         let mut tile_set = TileSet::new(context.load_texture(&Path::new("assets/level_assets.png")));
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
         tile_set.add_tile(Tile::Water, TextureRegion::new(0, 8, 8, 8));
+
+        tile_set.add_tile(Tile::Solid, TextureRegion::new(0,16,8,8));
+        tile_set.add_tile(Tile::Wall, TextureRegion::new(8,16,8,8));
+        tile_set.add_tile(Tile::Floor, TextureRegion::new(64,0,8,8));
 
         context.renderer.set_draw_color(Color::RGB(0, 0, 0));
 

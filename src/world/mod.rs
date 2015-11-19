@@ -5,7 +5,11 @@ use rand::{Rng, Rand};
 #[derive(PartialEq, Eq, Hash)]
 pub enum Tile {
     Grass,
-    Water
+    Water,
+
+    Solid,
+    Wall,
+    Floor
 }
 
 impl Rand for Tile {

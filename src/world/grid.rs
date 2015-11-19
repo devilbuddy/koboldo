@@ -45,7 +45,6 @@ impl <T> Grid <T> {
         where F : Fn() -> T {
         for yy in y..(y + h) {
             for xx in x..(x + w) {
-                let index = self.width * yy + xx;
                 self.set(xx, yy, f());
             }
         }

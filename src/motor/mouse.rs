@@ -1,5 +1,4 @@
 use sdl2::event::Event;
-use sdl2::mouse::{MouseState};
 
 pub struct MotorMouse {
     x : i32,
