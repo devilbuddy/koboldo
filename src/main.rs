@@ -1,6 +1,7 @@
 extern crate sdl2;
 extern crate sdl2_image;
 extern crate rand;
+extern crate nalgebra as na;
 
 use std::path::Path;
 
@@ -25,6 +26,25 @@ use tiles::*;
 use world::*;
 use camera::*;
 
+
+
+use na::{Vec2};
+use std::ops::{Add, Mul};
+
+struct Entity {
+    position : Vec2<f64>,
+    velocity : Vec2<f64>
+}
+
+impl Entity {
+    pub fn new() -> Entity {
+        Entity {
+            position : na::zero(),
+            velocity : na::zero()
+        }
+    }
+}
+
 struct Assets {
     tile_set : TileSet,
     grid : Grid<Cell>,
@@ -39,7 +59,8 @@ struct App {
     assets : Option<Assets>,
     sprites : Vec<Sprite>,
     controller_id : Option<i32>,
-    camera : Camera
+    camera : Camera,
+    player : Entity
 }
 
 impl App {
@@ -49,7 +70,8 @@ impl App {
             assets : None,
             sprites : Vec::new(),
             controller_id : None,
-            camera : Camera::new(display_size)
+            camera : Camera::new(display_size),
+            player : Entity::new()
         }
     }
 }
@@ -58,7 +80,9 @@ impl App {
 fn make_grid(width : u32, height : u32) -> Grid<Cell> {
     println!("make grid");
 
-    let template = generator::make_level(width, height);
+    let level = generator::make_level(width, height);
+    let template = level.grid;
+
     println!("generated level");
 
     let mut min_x = template.width;
@@ -172,10 +196,6 @@ impl motor::MotorApp for App {
 
         self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
-                    .position((96f64, 71f64))
-                    .build());
-        self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
-                    .texture_region(TextureRegion::new(16, 8, 8, 8))
                     .build());
 
         self.assets = Some(assets);
@@ -197,7 +217,7 @@ impl motor::MotorApp for App {
             assets.grid = make_grid(100, 100);
         }
 
-        render::render_grid(context, &assets.grid, &assets.tile_set, &self.camera);
+        render::render_grid(context, &assets.grid, &assets.tile_set, &mut self.sprites, &self.camera);
 
         let font = &assets.font;
         let mut y = 0;
@@ -213,9 +233,10 @@ impl motor::MotorApp for App {
         }
 
         {
-            let mut x = self.camera.position.0;
-            let mut y = self.camera.position.1;
-            let d =  delta_time * 50f64;
+            /*
+            let mut x = self.sprites[0].position.0;
+            let mut y = self.sprites[0].position.1;
+
 
             if self.controller_id.is_some() {
                 let c = context.joystick.get_controller(self.controller_id.unwrap());
@@ -232,29 +253,39 @@ impl motor::MotorApp for App {
                     y += d;
                 }
             }
+            */
+
+            let acceleration = 0.5f64;
+            let friction = 0.8f64;
 
             if context.keyboard.is_key_pressed(Keycode::Left) {
-                x -= d;
+                self.player.velocity.x -= acceleration;
             }
             if context.keyboard.is_key_pressed(Keycode::Right) {
-                x += d;
+                self.player.velocity.x += acceleration;
             }
             if context.keyboard.is_key_pressed(Keycode::Up) {
-                y -= d;
+                self.player.velocity.y -= acceleration;
             }
             if context.keyboard.is_key_pressed(Keycode::Down) {
-                y += d;
+                self.player.velocity.y += acceleration;
             }
-            self.camera.position = (x,y);
+            self.player.velocity = self.player.velocity.mul(friction);
+
+            let p = self.player.position.add(self.player.velocity);
+            self.player.position = p;
+
+            self.sprites[0].position = (self.player.position.x, self.player.position.y);
         }
+
+        self.camera.position = self.sprites[0].position;
 
         for s in self.sprites.iter_mut() {
             s.update(delta_time);
-            context.render_sprite(s);
         }
 
-        context.render_nine_patch(&assets.nine_patch, 10, 80, 47, 20);
-        font.draw_str("Ninepatch", 14, 86, &mut context.renderer);
+        context.render_nine_patch(&assets.nine_patch, 1, 0, 47, 20);
+        font.draw_str("Ninepatch", 5, 6, &mut context.renderer);
 
         return done;
     }

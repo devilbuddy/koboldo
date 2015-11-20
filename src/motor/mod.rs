@@ -57,6 +57,7 @@ pub trait MotorGraphics {
     fn load_font(&mut self, path : &Path) -> font::BitmapFont;
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
     fn render_sprite(&mut self, sprite : &gfx::Sprite);
+    fn render_sprite_at(&mut self, sprite : &gfx::Sprite, x : f64, y : f64) ;
     fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32);
 }
 
@@ -79,6 +80,10 @@ impl<'window> MotorGraphics for MotorContext<'window> {
 
     fn render_sprite(&mut self, sprite : &gfx::Sprite) {
         sprite.render(&mut self.renderer);
+    }
+
+    fn render_sprite_at(&mut self, sprite : &gfx::Sprite, x : f64, y : f64) {
+        sprite.render_at(x, y, &mut self.renderer);
     }
 
     fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32) {

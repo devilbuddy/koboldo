@@ -118,6 +118,18 @@ impl Sprite {
         }
     }
 
+    pub fn render_at(&self, x : f64, y: f64, renderer : &mut Renderer) {
+        let mut t = self.texture.borrow_mut();
+        t.set_color_mod(self.color.0, self.color.1, self.color.2);
+        let p = (x as i32, y as i32);
+        if self.animation.is_some() {
+            let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
+            render_region(renderer, &t, texture_region, p);
+        } else {
+            render_region(renderer, &t, self.texture_region.as_ref().unwrap(), p);
+        }
+    }
+
 }
 
 pub struct NinePatch {

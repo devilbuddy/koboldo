@@ -1,4 +1,5 @@
 use motor::{MotorContext, MotorGraphics};
+use motor::gfx::Sprite;
 
 use std::cmp::*;
 
@@ -8,7 +9,7 @@ use world::grid::Grid;
 use tiles::TileSet;
 use camera::Camera;
 
-pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &TileSet, camera : &Camera) {
+pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &TileSet, sprites: &Vec<Sprite>, camera : &Camera) {
 
     let tile_size = 8i32;
 
@@ -38,4 +39,12 @@ pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &
             };
         }
     }
+
+    for s in sprites {
+        let position = s.position;
+        let x = position.0 - offset_x;
+        let y = position.1 - offset_y;
+        context.render_sprite_at(s, x, y);
+    }
+
 }
