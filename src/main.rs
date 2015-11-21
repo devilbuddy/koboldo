@@ -45,6 +45,60 @@ impl Entity {
     }
 }
 
+
+#[derive (Clone, Copy, Debug)]
+struct Rectangle {
+    pub x : f64,
+    pub y : f64,
+    pub w : f64,
+    pub h : f64
+}
+
+impl Rectangle {
+    pub fn new(x: f64, y: f64, w: f64, h : f64) -> Rectangle {
+        Rectangle {
+            x : x,
+            y : y,
+            w : w,
+            h : h
+        }
+    }
+
+    pub fn init(&mut self, x: f64, y: f64, w: f64, h : f64) {
+        self.x = x;
+        self.y = y;
+        self.w = w;
+        self.h = h;
+    }
+
+    pub fn overlaps(&self, r : &Rectangle) -> bool {
+        self.x < r.x + r.w && self.x + self.w > r.x && self.y < r.y + r.h && self.y + self.h > r.y
+    }
+}
+
+struct CollisionData {
+    rects : [Rectangle; 5],
+    count : usize
+}
+
+impl CollisionData {
+    pub fn new() -> CollisionData {
+        CollisionData {
+            rects : [Rectangle::new(0f64, 0f64, 0f64, 0f64) ; 5],
+            count : 0
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.count = 0;
+    }
+
+    pub fn add(&mut self, x: f64, y: f64, w: f64, h : f64) {
+        self.rects[self.count].init(x, y, w , h);
+        self.count += 1;
+    }
+}
+
 struct Assets {
     tile_set : TileSet,
     grid : Grid<Cell>,
@@ -72,6 +126,34 @@ impl App {
             controller_id : None,
             camera : Camera::new(display_size),
             player : Entity::new()
+        }
+    }
+
+
+}
+
+
+fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, grid : &Grid<Cell>, collision_data : &mut CollisionData) {
+    let size = 8f64;
+
+
+    collision_data.reset();
+
+    let index = 0;
+
+    for y in start_y..(end_y + 1) {
+        for x in start_x..(end_x + 1) {
+            let t = grid.get_if(x, y, |cell| {
+                match cell.tile {
+                    Tile::Solid | Tile::Wall => {
+                        true
+                    }
+                    _ => { false }
+                }
+            });
+            if t.is_some() {
+                collision_data.add(x as f64 * size, y as f64 * size, size, size);
+            }
         }
     }
 }
@@ -202,6 +284,8 @@ impl motor::MotorApp for App {
 
     }
 
+
+
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
         let mut done = false;
         if context.keyboard.is_key_pressed(Keycode::Escape) {
@@ -215,6 +299,7 @@ impl motor::MotorApp for App {
 
         if context.keyboard.is_key_pressed(Keycode::R) {
             assets.grid = make_grid(100, 100);
+            self.player.position = Vec2::new(100f64, 100f64);
         }
 
         render::render_grid(context, &assets.grid, &assets.tile_set, &mut self.sprites, &self.camera);
@@ -256,7 +341,7 @@ impl motor::MotorApp for App {
             */
 
             let acceleration = 0.5f64;
-            let friction = 0.8f64;
+            let friction = 0.7f64;
 
             if context.keyboard.is_key_pressed(Keycode::Left) {
                 self.player.velocity.x -= acceleration;
@@ -271,6 +356,52 @@ impl motor::MotorApp for App {
                 self.player.velocity.y += acceleration;
             }
             self.player.velocity = self.player.velocity.mul(friction);
+
+
+            let mut collision_data = CollisionData::new();
+
+            let size = 8f64;
+            let mut player_rect = Rectangle::new(self.player.position.x, self.player.position.y , size, size);
+
+            let mut start_x;
+            let mut end_x;
+            let mut start_y;
+            let mut end_y;
+            if self.player.velocity.x > 0f64 {
+                start_x = ((player_rect.x + size + self.player.velocity.x)/size) as u32;
+                end_x = start_x;
+            } else {
+                start_x = ((player_rect.x + self.player.velocity.x)/size) as u32;
+                end_x = start_x;
+            }
+            start_y = (player_rect.y /size) as u32;
+            end_y = ((player_rect.y + size) / size) as u32;
+            get_collision_tiles(start_x, end_x, start_y, end_y, &assets.grid, &mut collision_data);
+            player_rect.x += self.player.velocity.x;
+            'x_loop: for i in 0..collision_data.count {
+                if player_rect.overlaps(&collision_data.rects[i]) {
+                    self.player.velocity.x = 0f64;
+                    break 'x_loop;
+                }
+            }
+            player_rect.x = self.player.position.x;
+
+            if self.player.velocity.y > 0f64 {
+                start_y = ((player_rect.y + size + self.player.velocity.y)/size) as u32;
+                end_y = start_y;
+            } else {
+                start_y = ((player_rect.y + self.player.velocity.y)/size) as u32;
+            }
+            start_x = (player_rect.x /size) as u32;
+            end_x = ((player_rect.x + size) / size) as u32;
+            get_collision_tiles(start_x, end_x, start_y, end_y, &assets.grid, &mut collision_data);
+            player_rect.y += self.player.velocity.y;
+            'y_loop: for i in 0..collision_data.count {
+                if player_rect.overlaps(&collision_data.rects[i]) {
+                    self.player.velocity.y = 0f64;
+                    break 'y_loop;
+                }
+            }
 
             let p = self.player.position.add(self.player.velocity);
             self.player.position = p;

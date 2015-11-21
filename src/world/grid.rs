@@ -50,4 +50,15 @@ impl <T> Grid <T> {
         }
     }
 
+    pub fn get_if<F>(&self, x : u32, y: u32, f : F) -> Option<&T>
+        where F : Fn(&T) -> bool {
+
+        let element = self.get(x, y);
+        if element.is_some() && f(element.unwrap()) {
+            return element;
+        }
+
+        None
+    }
+
 }
