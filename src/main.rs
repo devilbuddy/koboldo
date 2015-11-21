@@ -4,10 +4,10 @@ extern crate rand;
 extern crate nalgebra as na;
 
 use std::path::Path;
+use std::string::ToString;
 
 use sdl2::pixels::Color;
 use sdl2::keyboard::{Keycode};
-use sdl2::controller::{Button};
 
 mod motor;
 use motor::{MotorGraphics, TextureReference};
@@ -33,14 +33,16 @@ use std::ops::{Add, Mul};
 
 struct Entity {
     position : Vec2<f64>,
-    velocity : Vec2<f64>
+    velocity : Vec2<f64>,
+    collision_data : CollisionData
 }
 
 impl Entity {
     pub fn new() -> Entity {
         Entity {
             position : na::zero(),
-            velocity : na::zero()
+            velocity : na::zero(),
+            collision_data : CollisionData::new()
         }
     }
 }
@@ -136,10 +138,7 @@ impl App {
 fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, grid : &Grid<Cell>, collision_data : &mut CollisionData) {
     let size = 8f64;
 
-
     collision_data.reset();
-
-    let index = 0;
 
     for y in start_y..(end_y + 1) {
         for x in start_x..(end_x + 1) {
@@ -307,39 +306,15 @@ impl motor::MotorApp for App {
         let font = &assets.font;
         let mut y = 0;
         let x = 80;
-        font.draw_str("ABCDEFGHIJGKMNOPQRSTUVWXYZ", x, y, &mut context.renderer);
+        font.draw_string(format!("x:{:.*}", 5,  self.player.position.x), x, y, &mut context.renderer);
         y += font.line_height;
-        font.draw_str("abcdefghijklmnopqrstuvwxyz", x, y, &mut context.renderer);
-        y += font.line_height;
-        font.draw_str("0123456789 !:\"#¤%&/()=", x, y, &mut context.renderer);
+        font.draw_string(format!("y:{:.*}", 5,  self.player.position.y), x, y, &mut context.renderer);
 
         if self.controller_id.is_none() {
             self.controller_id = context.joystick.get_controller_id();
         }
 
         {
-            /*
-            let mut x = self.sprites[0].position.0;
-            let mut y = self.sprites[0].position.1;
-
-
-            if self.controller_id.is_some() {
-                let c = context.joystick.get_controller(self.controller_id.unwrap());
-                if c.game_controller.button(Button::DPadLeft) {
-                    x -= d;
-                }
-                if c.game_controller.button(Button::DPadRight) {
-                    x += d;
-                }
-                if c.game_controller.button(Button::DPadUp) {
-                    y -= d;
-                }
-                if c.game_controller.button(Button::DPadDown) {
-                    y += d;
-                }
-            }
-            */
-
             let acceleration = 0.5f64;
             let friction = 0.7f64;
 
@@ -358,8 +333,6 @@ impl motor::MotorApp for App {
             self.player.velocity = self.player.velocity.mul(friction);
 
 
-            let mut collision_data = CollisionData::new();
-
             let size = 8f64;
             let mut player_rect = Rectangle::new(self.player.position.x, self.player.position.y , size, size);
 
@@ -376,10 +349,10 @@ impl motor::MotorApp for App {
             }
             start_y = (player_rect.y /size) as u32;
             end_y = ((player_rect.y + size) / size) as u32;
-            get_collision_tiles(start_x, end_x, start_y, end_y, &assets.grid, &mut collision_data);
+            get_collision_tiles(start_x, end_x, start_y, end_y, &assets.grid, &mut self.player.collision_data);
             player_rect.x += self.player.velocity.x;
-            'x_loop: for i in 0..collision_data.count {
-                if player_rect.overlaps(&collision_data.rects[i]) {
+            'x_loop: for i in 0..self.player.collision_data.count {
+                if player_rect.overlaps(&self.player.collision_data.rects[i]) {
                     self.player.velocity.x = 0f64;
                     break 'x_loop;
                 }
@@ -394,10 +367,10 @@ impl motor::MotorApp for App {
             }
             start_x = (player_rect.x /size) as u32;
             end_x = ((player_rect.x + size) / size) as u32;
-            get_collision_tiles(start_x, end_x, start_y, end_y, &assets.grid, &mut collision_data);
+            get_collision_tiles(start_x, end_x, start_y, end_y, &assets.grid, &mut self.player.collision_data);
             player_rect.y += self.player.velocity.y;
-            'y_loop: for i in 0..collision_data.count {
-                if player_rect.overlaps(&collision_data.rects[i]) {
+            'y_loop: for i in 0..self.player.collision_data.count {
+                if player_rect.overlaps(&self.player.collision_data.rects[i]) {
                     self.player.velocity.y = 0f64;
                     break 'y_loop;
                 }

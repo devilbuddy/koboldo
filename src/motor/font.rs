@@ -92,6 +92,26 @@ impl BitmapFont {
         }
     }
 
+    pub fn draw_string(&self, s : String, x : i32, y: i32, renderer : &mut Renderer) {
+        let mut x_pos = x;
+        let y_pos = y;
+        for c in s.chars() {
+            match self.glyphs.get(&c) {
+                Some(glyph) => {
+                    if !glyph.is_empty() {
+                        renderer.copy(&self.texture,
+                            Some(Rect::new_unwrap(glyph.x, glyph.y, glyph.width, glyph.height)),
+                            Some(Rect::new_unwrap(x_pos + glyph.x_offset, y_pos + glyph.y_offset, glyph.width, glyph.height))
+                        );
+                    }
+                    x_pos += glyph.x_advance;
+                }
+                _ => {
+                    x_pos += self.empty_glyph.x_advance;
+                }
+            }
+        }
+    }
 
     pub fn load(font_file : &Path, renderer : &Renderer) -> Result<BitmapFont, &'static str> {
         let mut data = BitmapFontData::new();
