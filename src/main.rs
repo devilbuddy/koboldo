@@ -251,17 +251,14 @@ fn make_grid(width : u32, height : u32) -> Grid<Cell> {
 
 impl motor::MotorApp for App {
     fn init(&mut self, context : &mut motor::MotorContext) {
-
+        context.renderer.set_draw_color(Color::RGB(0, 0, 0));
 
         let mut tile_set = TileSet::new(context.load_texture(&Path::new("assets/level_assets.png")));
         tile_set.add_tile(Tile::Grass, TextureRegion::new(0, 0, 8, 8));
         tile_set.add_tile(Tile::Water, TextureRegion::new(0, 8, 8, 8));
-
         tile_set.add_tile(Tile::Solid, TextureRegion::new(0,16,8,8));
         tile_set.add_tile(Tile::Wall, TextureRegion::new(8,16,8,8));
         tile_set.add_tile(Tile::Floor, TextureRegion::new(64,0,8,8));
-
-        context.renderer.set_draw_color(Color::RGB(0, 0, 0));
 
         let nine_patch = NinePatch::new(context.load_texture_as_ref(&Path::new("assets/level_assets.png")),
                                         TextureRegion::new(0, 8, 8, 8),
@@ -280,9 +277,7 @@ impl motor::MotorApp for App {
                     .build());
 
         self.assets = Some(assets);
-
     }
-
 
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
@@ -291,9 +286,7 @@ impl motor::MotorApp for App {
             done = true;
         }
 
-
         self.state_time += delta_time;
-
         let assets = self.assets.as_mut().unwrap();
 
         if context.keyboard.is_key_pressed(Keycode::R) {
@@ -302,13 +295,6 @@ impl motor::MotorApp for App {
         }
 
         render::render_grid(context, &assets.grid, &assets.tile_set, &mut self.sprites, &self.camera);
-
-        let font = &assets.font;
-        let mut y = 0;
-        let x = 80;
-        font.draw_string(format!("x:{:.*}", 5,  self.player.position.x), x, y, &mut context.renderer);
-        y += font.line_height;
-        font.draw_string(format!("y:{:.*}", 5,  self.player.position.y), x, y, &mut context.renderer);
 
         if self.controller_id.is_none() {
             self.controller_id = context.joystick.get_controller_id();
@@ -388,8 +374,15 @@ impl motor::MotorApp for App {
             s.update(delta_time);
         }
 
+        let font = &assets.font;
         context.render_nine_patch(&assets.nine_patch, 1, 0, 47, 20);
         font.draw_str("Ninepatch", 5, 6, &mut context.renderer);
+
+        let mut y = 0;
+        let x = 80;
+        font.draw_string(format!("x:{:.*}", 5,  self.player.position.x), x, y, &mut context.renderer);
+        y += font.line_height;
+        font.draw_string(format!("y:{:.*}", 5,  self.player.position.y), x, y, &mut context.renderer);
 
         return done;
     }
