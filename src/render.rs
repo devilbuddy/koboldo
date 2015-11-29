@@ -9,7 +9,9 @@ use world::grid::Grid;
 use tiles::TileSet;
 use camera::Camera;
 
-pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &TileSet, sprites: &Vec<Sprite>, camera : &Camera) {
+use Actor;
+
+pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &TileSet, actors: &Vec<Box<Actor>>, camera : &Camera) {
 
     let tile_size = 8i32;
 
@@ -40,11 +42,11 @@ pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &
         }
     }
 
-    for s in sprites {
-        let position = s.position;
-        let x = position.0 - offset_x;
-        let y = position.1 - offset_y;
-        context.render_sprite_at(s, x, y);
+    for actor in actors {
+        let position = actor.get_entity().position;
+        let x = position.x - offset_x;
+        let y = position.y - offset_y;
+        context.render_sprite_at(actor.get_sprite(), x, y);
     }
 
 }

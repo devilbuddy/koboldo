@@ -26,6 +26,66 @@ use tiles::*;
 use world::*;
 use camera::*;
 
+pub trait Actor {
+    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64,  grid : &Grid<Cell>) -> bool;
+    fn get_entity(&self) -> &Entity;
+    fn get_entity_mut(&mut self) -> &mut Entity;
+    fn get_sprite(&self) -> &Sprite;
+}
+
+struct Player {
+    entity : Entity,
+    sprite : Sprite,
+    alive : bool
+}
+
+impl Player {
+    pub fn new(sprite : Sprite) -> Player {
+        Player {
+            entity : Entity::new(),
+            sprite : sprite,
+            alive : true
+        }
+    }
+}
+
+impl Actor for Player {
+    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) -> bool {
+
+        self.sprite.update(delta_time);
+
+        let acceleration = 0.5f64;
+        if context.keyboard.is_key_pressed(Keycode::Left) {
+            self.entity.velocity.x -= acceleration;
+        }
+        if context.keyboard.is_key_pressed(Keycode::Right) {
+            self.entity.velocity.x += acceleration;
+        }
+        if context.keyboard.is_key_pressed(Keycode::Up) {
+            self.entity.velocity.y -= acceleration;
+        }
+        if context.keyboard.is_key_pressed(Keycode::Down) {
+            self.entity.velocity.y += acceleration;
+        }
+
+        world::do_collision_check(&mut self.entity, grid);
+        self.sprite.position = (self.entity.position.x, self.entity.position.y);
+
+        self.alive
+    }
+    fn get_entity(&self) -> &Entity {
+        &self.entity
+    }
+    fn get_entity_mut(&mut self) -> &mut Entity {
+        &mut self.entity
+    }
+    fn get_sprite(&self) -> &Sprite {
+        &self.sprite
+    }
+}
+
+
+
 struct Assets {
     tile_set : TileSet,
     grid : Grid<Cell>,
@@ -37,21 +97,9 @@ struct Assets {
 struct App {
     state_time : f64,
     assets : Option<Assets>,
-    sprites : Vec<Sprite>,
     controller_id : Option<i32>,
     camera : Camera,
-    player : Entity
-}
-
-struct PlayerBrain;
-impl Brain for PlayerBrain {
-    fn update(&self, entity: &mut Entity, context : &MotorContext) {
-
-    }
-}
-
-fn make_player() -> Entity {
-    Entity::new(Box::new(PlayerBrain))
+    actors : Vec<Box<Actor>>,
 }
 
 impl App {
@@ -59,10 +107,9 @@ impl App {
         App {
             state_time : 0f64,
             assets : None,
-            sprites : Vec::new(),
             controller_id : None,
             camera : Camera::new(display_size),
-            player : make_player()
+            actors : Vec::new()
         }
     }
 }
@@ -181,9 +228,11 @@ impl motor::MotorApp for App {
             nine_patch : nine_patch
         };
 
-        self.sprites.push(SpriteBuilder::new(assets.monster_texture.clone())
+        let player_sprite = SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
-                    .build());
+                    .build();
+        self.actors.push(Box::new(Player::new(player_sprite)));
+
 
         self.assets = Some(assets);
     }
@@ -199,36 +248,22 @@ impl motor::MotorApp for App {
 
         if context.keyboard.is_key_pressed(Keycode::R) {
             assets.grid = make_grid(100, 100);
-            self.player.set_position(100f64, 100f64);
+            self.actors[0].get_entity_mut().set_position(100f64, 100f64);
         }
 
-        render::render_grid(context, &assets.grid, &assets.tile_set, &mut self.sprites, &self.camera);
+        render::render_grid(context, &assets.grid, &assets.tile_set, &mut self.actors, &self.camera);
 
         if self.controller_id.is_none() {
             self.controller_id = context.joystick.get_controller_id();
         }
 
-        let acceleration = 0.5f64;
-        if context.keyboard.is_key_pressed(Keycode::Left) {
-            self.player.velocity.x -= acceleration;
-        }
-        if context.keyboard.is_key_pressed(Keycode::Right) {
-            self.player.velocity.x += acceleration;
-        }
-        if context.keyboard.is_key_pressed(Keycode::Up) {
-            self.player.velocity.y -= acceleration;
-        }
-        if context.keyboard.is_key_pressed(Keycode::Down) {
-            self.player.velocity.y += acceleration;
+        for actor in self.actors.iter_mut() {
+            actor.update(context, delta_time, &assets.grid);
         }
 
-        world::do_collision_check(&mut self.player, &assets.grid);
-        self.sprites[0].position = (self.player.position.x, self.player.position.y);
-        self.camera.position = self.sprites[0].position;
+        let p = self.actors[0].get_entity().position;
+        self.camera.position = (p.x, p.y);
 
-        for s in self.sprites.iter_mut() {
-            s.update(delta_time);
-        }
 
         let font = &assets.font;
         context.render_nine_patch(&assets.nine_patch, 1, 0, 47, 20);
@@ -236,9 +271,9 @@ impl motor::MotorApp for App {
 
         let mut y = 0;
         let x = 80;
-        font.draw_string(format!("x:{:.*}", 5,  self.player.position.x), x, y, &mut context.renderer);
+        font.draw_string(format!("x:{:.*}", 5,  self.actors[0].get_entity().position.x), x, y, &mut context.renderer);
         y += font.line_height;
-        font.draw_string(format!("y:{:.*}", 5,  self.player.position.y), x, y, &mut context.renderer);
+        font.draw_string(format!("y:{:.*}", 5,  self.actors[0].get_entity().position.y), x, y, &mut context.renderer);
 
         return done;
     }

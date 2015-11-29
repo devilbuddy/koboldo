@@ -42,24 +42,19 @@ impl Cell {
 }
 
 
-pub trait Brain {
-    fn update(&self, entity: &mut Entity, context : &MotorContext);
-}
 
 pub struct Entity {
     pub position : Vec2<f64>,
     pub velocity : Vec2<f64>,
-    collision_data : CollisionData,
-    pub brain : Box<Brain>
+    collision_data : CollisionData
 }
 
 impl Entity {
-    pub fn new(brain : Box<Brain>) -> Entity {
+    pub fn new() -> Entity {
         Entity {
             position : na::zero(),
             velocity : na::zero(),
-            collision_data : CollisionData::new(),
-            brain : brain
+            collision_data : CollisionData::new()
         }
     }
 
@@ -67,6 +62,7 @@ impl Entity {
         self.position.x = x;
         self.position.y = y;
     }
+
 }
 
 #[derive (Clone, Copy, Debug)]
