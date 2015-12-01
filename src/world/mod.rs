@@ -8,6 +8,7 @@ use self::na::*;
 use std::ops::{Add, Mul};
 
 use motor::MotorContext;
+use motor::gfx::Sprite;
 
 #[derive(PartialEq, Eq, Hash)]
 pub enum Tile {
@@ -186,6 +187,38 @@ fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, g
             if t.is_some() {
                 collision_data.add(x as f64 * size, y as f64 * size, size, size);
             }
+        }
+    }
+}
+
+pub trait Actor {
+    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &Grid<Cell>) -> bool;
+    fn get_entity(&self) -> &Entity;
+    fn get_entity_mut(&mut self) -> &mut Entity;
+    fn get_sprite(&self) -> &Sprite;
+}
+
+pub struct World {
+    pub grid : Grid<Cell>,
+    pub actors : Vec<Box<Actor>>,
+}
+
+impl World {
+    pub fn new(grid : Grid<Cell>) -> World {
+        World {
+            grid : grid,
+            actors : Vec::new()
+        }
+    }
+
+    pub fn init(&mut self, grid : Grid<Cell>) {
+        self.grid = grid;
+        self.actors[0].get_entity_mut().set_position(100f64, 100f64);
+    }
+
+    pub fn update(&mut self, context : &mut MotorContext, delta_time : f64) {
+        for actor in self.actors.iter_mut() {
+            actor.update(context, delta_time, &self.grid);
         }
     }
 }

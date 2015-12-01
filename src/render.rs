@@ -9,9 +9,12 @@ use world::grid::Grid;
 use tiles::TileSet;
 use camera::Camera;
 
-use Actor;
+use world::{Actor, World};
 
-pub fn render_grid(context : &mut MotorContext, grid : &Grid<Cell>, tile_set : &TileSet, actors: &Vec<Box<Actor>>, camera : &Camera) {
+pub fn render_grid(context : &mut MotorContext, world: &World, tile_set : &TileSet, camera : &Camera) {
+
+    let grid = &world.grid;
+    let actors = &world.actors;
 
     let tile_size = 8i32;
 

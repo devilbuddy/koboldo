@@ -4,7 +4,6 @@ extern crate rand;
 extern crate nalgebra as na;
 
 use std::path::Path;
-use std::string::ToString;
 
 use sdl2::pixels::Color;
 use sdl2::keyboard::{Keycode};
@@ -26,12 +25,7 @@ use tiles::*;
 use world::*;
 use camera::*;
 
-pub trait Actor {
-    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64,  grid : &Grid<Cell>) -> bool;
-    fn get_entity(&self) -> &Entity;
-    fn get_entity_mut(&mut self) -> &mut Entity;
-    fn get_sprite(&self) -> &Sprite;
-}
+
 
 struct Player {
     entity : Entity,
@@ -88,18 +82,18 @@ impl Actor for Player {
 
 struct Assets {
     tile_set : TileSet,
-    grid : Grid<Cell>,
     font : BitmapFont,
     monster_texture : TextureReference,
     nine_patch : NinePatch
 }
+
 
 struct App {
     state_time : f64,
     assets : Option<Assets>,
     controller_id : Option<i32>,
     camera : Camera,
-    actors : Vec<Box<Actor>>,
+    world : Option<World>
 }
 
 impl App {
@@ -109,7 +103,7 @@ impl App {
             assets : None,
             controller_id : None,
             camera : Camera::new(display_size),
-            actors : Vec::new()
+            world : None
         }
     }
 }
@@ -222,19 +216,20 @@ impl motor::MotorApp for App {
 
         let assets = Assets {
             tile_set : tile_set,
-            grid : make_grid(100, 100),
             font : context.load_font(&Path::new("assets/04b_03.fnt")),
             monster_texture : context.load_texture_as_ref(&Path::new("assets/monster_assets.png")),
             nine_patch : nine_patch
         };
 
+        let mut world = World::new(make_grid(100, 100));
+
         let player_sprite = SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
                     .build();
-        self.actors.push(Box::new(Player::new(player_sprite)));
-
+        world.actors.push(Box::new(Player::new(player_sprite)));
 
         self.assets = Some(assets);
+        self.world = Some(world);
     }
 
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64) -> bool {
@@ -245,25 +240,23 @@ impl motor::MotorApp for App {
 
         self.state_time += delta_time;
         let assets = self.assets.as_mut().unwrap();
+        let world = self.world.as_mut().unwrap();
 
         if context.keyboard.is_key_pressed(Keycode::R) {
-            assets.grid = make_grid(100, 100);
-            self.actors[0].get_entity_mut().set_position(100f64, 100f64);
+            world.init(make_grid(100, 100));
         }
 
-        render::render_grid(context, &assets.grid, &assets.tile_set, &mut self.actors, &self.camera);
+        render::render_grid(context, &world, &assets.tile_set, &self.camera);
 
         if self.controller_id.is_none() {
             self.controller_id = context.joystick.get_controller_id();
         }
 
-        for actor in self.actors.iter_mut() {
-            actor.update(context, delta_time, &assets.grid);
-        }
+        world.update(context, delta_time);
 
-        let p = self.actors[0].get_entity().position;
-        self.camera.position = (p.x, p.y);
-
+        let p = &world.actors[0];
+        let pos = p.get_entity().position;
+        self.camera.position = (pos.x, pos.y);
 
         let font = &assets.font;
         context.render_nine_patch(&assets.nine_patch, 1, 0, 47, 20);
@@ -271,9 +264,9 @@ impl motor::MotorApp for App {
 
         let mut y = 0;
         let x = 80;
-        font.draw_string(format!("x:{:.*}", 5,  self.actors[0].get_entity().position.x), x, y, &mut context.renderer);
+        font.draw_string(format!("x:{:.*}", 5,  pos.x), x, y, &mut context.renderer);
         y += font.line_height;
-        font.draw_string(format!("y:{:.*}", 5,  self.actors[0].get_entity().position.y), x, y, &mut context.renderer);
+        font.draw_string(format!("y:{:.*}", 5,  pos.y), x, y, &mut context.renderer);
 
         return done;
     }
