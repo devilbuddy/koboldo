@@ -1,19 +1,41 @@
 use motor::{MotorContext, MotorGraphics};
-use motor::gfx::Sprite;
-
+use motor::gfx::TextureRegion;
+use camera::Camera;
+use world::{Actor, World, Tile};
+use sdl2::render::{Texture};
+use std::collections::HashMap;
 use std::cmp::*;
 
-use world::{Cell};
-use world::grid::Grid;
 
-use tiles::TileSet;
-use camera::Camera;
+pub struct TileSet {
+    pub texture : Texture,
+    tiles : HashMap<Tile, TextureRegion>
+}
 
-use world::{Actor, World};
+impl TileSet {
+    pub fn new(texture : Texture) -> TileSet {
+        TileSet {
+            texture : texture,
+            tiles : HashMap::new()
+        }
+    }
+
+    pub fn add_tile(&mut self, tile: Tile, texture_region : TextureRegion) {
+        self.tiles.insert(tile, texture_region);
+    }
+
+    pub fn get_texture_region(&self, tile : &Tile) -> Option<&TextureRegion> {
+        if self.tiles.contains_key(tile) {
+            return self.tiles.get(tile);
+        }
+        return None;
+    }
+}
+
 
 pub fn render_grid(context : &mut MotorContext, world: &World, tile_set : &TileSet, camera : &Camera) {
 
-    let grid = &world.grid;
+    let grid = world.grid.as_ref().unwrap();
     let actors = &world.actors;
 
     let tile_size = 8i32;

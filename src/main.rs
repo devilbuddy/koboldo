@@ -16,16 +16,13 @@ use motor::font::BitmapFont;
 mod world;
 use world::grid::Grid;
 
-mod tiles;
 mod render;
 mod generator;
 mod camera;
 
-use tiles::*;
 use world::*;
 use camera::*;
-
-
+use render::TileSet;
 
 struct Player {
     entity : Entity,
@@ -221,7 +218,7 @@ impl motor::MotorApp for App {
             nine_patch : nine_patch
         };
 
-        let mut world = World::new(make_grid(100, 100));
+        let mut world = World::new();
 
         let player_sprite = SpriteBuilder::new(assets.monster_texture.clone())
                     .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
@@ -246,7 +243,9 @@ impl motor::MotorApp for App {
             world.init(make_grid(100, 100));
         }
 
-        render::render_grid(context, &world, &assets.tile_set, &self.camera);
+        if world.grid.is_some() {
+            render::render_grid(context, &world, &assets.tile_set, &self.camera);
+        }
 
         if self.controller_id.is_none() {
             self.controller_id = context.joystick.get_controller_id();

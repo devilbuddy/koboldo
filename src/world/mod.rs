@@ -1,7 +1,7 @@
 extern crate nalgebra as na;
 
 pub mod grid;
-use self::grid::*;
+//use self::grid::*;
 
 use rand::{Rng, Rand};
 use self::na::*;
@@ -120,7 +120,7 @@ impl CollisionData {
 }
 
 
-pub fn do_collision_check(entity : &mut Entity, grid : &Grid<Cell>) {
+pub fn do_collision_check(entity : &mut Entity, grid : &grid::Grid<Cell>) {
     let size = 8f64;
     let mut player_rect = Rectangle::new(entity.position.x, entity.position.y , size, size);
 
@@ -169,7 +169,7 @@ pub fn do_collision_check(entity : &mut Entity, grid : &Grid<Cell>) {
     entity.velocity = entity.velocity.mul(friction);
 }
 
-fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, grid : &Grid<Cell>, collision_data : &mut CollisionData) {
+fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, grid : &grid::Grid<Cell>, collision_data : &mut CollisionData) {
     let size = 8f64;
 
     collision_data.reset();
@@ -192,33 +192,36 @@ fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, g
 }
 
 pub trait Actor {
-    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &Grid<Cell>) -> bool;
+    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &grid::Grid<Cell>) -> bool;
     fn get_entity(&self) -> &Entity;
     fn get_entity_mut(&mut self) -> &mut Entity;
     fn get_sprite(&self) -> &Sprite;
 }
 
 pub struct World {
-    pub grid : Grid<Cell>,
+    pub grid : Option<grid::Grid<Cell>>,
     pub actors : Vec<Box<Actor>>,
 }
 
 impl World {
-    pub fn new(grid : Grid<Cell>) -> World {
+    pub fn new() -> World {
         World {
-            grid : grid,
+            grid : None,
             actors : Vec::new()
         }
     }
 
-    pub fn init(&mut self, grid : Grid<Cell>) {
-        self.grid = grid;
+    pub fn init(&mut self, grid : grid::Grid<Cell>) {
+        self.grid = Some(grid);
         self.actors[0].get_entity_mut().set_position(100f64, 100f64);
     }
 
     pub fn update(&mut self, context : &mut MotorContext, delta_time : f64) {
-        for actor in self.actors.iter_mut() {
-            actor.update(context, delta_time, &self.grid);
+        if self.grid.is_some() {
+            for actor in self.actors.iter_mut() {
+                actor.update(context, delta_time, self.grid.as_ref().unwrap());
+            }
         }
+
     }
 }
