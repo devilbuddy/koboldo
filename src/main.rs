@@ -240,7 +240,9 @@ impl motor::MotorApp for App {
         let world = self.world.as_mut().unwrap();
 
         if context.keyboard.is_key_pressed(Keycode::R) {
-            world.init(make_grid(100, 100));
+            let grid = make_grid(100, 100);
+            self.camera.set_world_size(grid.width * 8, grid.height * 8);
+            world.init(grid);
         }
 
         if world.grid.is_some() {
@@ -255,7 +257,7 @@ impl motor::MotorApp for App {
 
         let p = &world.actors[0];
         let pos = p.get_entity().position;
-        self.camera.position = (pos.x, pos.y);
+        self.camera.set_position(pos.x, pos.y);
 
         let font = &assets.font;
         context.render_nine_patch(&assets.nine_patch, 1, 0, 47, 20);

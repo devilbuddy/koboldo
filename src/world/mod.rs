@@ -1,7 +1,6 @@
 extern crate nalgebra as na;
 
 pub mod grid;
-//use self::grid::*;
 
 use rand::{Rng, Rand};
 use self::na::*;
