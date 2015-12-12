@@ -220,7 +220,7 @@ fn place_room(room_type : RoomType, x_start : u32, y_start : u32, grid :  &mut G
         },
         _ => {}
     }
-    
+
     for y in y_start..(y_start + h) {
         for x in x_start..(x_start + w) {
             if place_floor(x, y, grid) {
@@ -231,12 +231,12 @@ fn place_room(room_type : RoomType, x_start : u32, y_start : u32, grid :  &mut G
     floor_count
 }
 
-pub struct Level {
+pub struct LevelTemplate {
     pub grid : Grid<Tile>,
     pub start : (u32, u32)
 }
 
-pub fn make_level(width : u32, height : u32) -> Level {
+pub fn make_level(width : u32, height : u32) -> LevelTemplate {
     let mut grid = Grid::<Tile>::new(width, height);
     // fill with walls
     for y in 0..grid.height {
@@ -306,7 +306,7 @@ pub fn make_level(width : u32, height : u32) -> Level {
         }
     }
 
-    Level {
+    LevelTemplate {
         grid : grid,
         start : start
     }

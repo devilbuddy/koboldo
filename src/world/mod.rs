@@ -191,7 +191,8 @@ fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, g
 }
 
 pub trait Actor {
-    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &grid::Grid<Cell>) -> bool;
+    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &grid::Grid<Cell>);
+    fn is_alive(&self) -> bool;
     fn get_entity(&self) -> &Entity;
     fn get_entity_mut(&mut self) -> &mut Entity;
     fn get_sprite(&self) -> &Sprite;
@@ -221,6 +222,6 @@ impl World {
                 actor.update(context, delta_time, self.grid.as_ref().unwrap());
             }
         }
-
+        self.actors.retain(|ref a| a.is_alive());
     }
 }

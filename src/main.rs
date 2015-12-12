@@ -19,6 +19,7 @@ use world::grid::Grid;
 mod render;
 mod generator;
 mod camera;
+mod levelgenerator;
 
 use world::*;
 use camera::*;
@@ -41,7 +42,7 @@ impl Player {
 }
 
 impl Actor for Player {
-    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) -> bool {
+    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) {
 
         self.sprite.update(delta_time);
 
@@ -58,10 +59,14 @@ impl Actor for Player {
         if context.keyboard.is_key_pressed(Keycode::Down) {
             self.entity.velocity.y += acceleration;
         }
+        if context.keyboard.is_key_pressed(Keycode::K) {
+            self.alive = false;
+        }
 
         world::do_collision_check(&mut self.entity, grid);
         self.sprite.position = (self.entity.position.x, self.entity.position.y);
-
+    }
+    fn is_alive(&self) -> bool {
         self.alive
     }
     fn get_entity(&self) -> &Entity {
@@ -105,95 +110,7 @@ impl App {
     }
 }
 
-fn make_grid(width : u32, height : u32) -> Grid<Cell> {
-    println!("make grid");
 
-    let level = generator::make_level(width, height);
-    let template = level.grid;
-
-    println!("generated level");
-
-    let mut min_x = template.width;
-    let mut min_y = template.height;
-    let mut max_x = 0;
-    let mut max_y = 0;
-
-    for y in 0..height {
-        for x in 0..width {
-            match *template.get(x, y).unwrap() {
-                generator::Tile::Floor => {
-                    if y < min_y {
-                        min_y = y;
-                    }
-                    if y >= max_y {
-                        max_y = y;
-                    }
-                    if x < min_x {
-                        min_x = x;
-                    }
-                    if x >= max_x {
-                        max_x = x;
-                    }
-                },
-                _ => {}
-            }
-        }
-    }
-
-    println!("{:?} {:?} {:?} {:?}", min_x, max_x, min_y, max_y);
-    println!("generating tiles");
-
-    let w = max_x - min_x + 3;
-    let h = max_y - min_y + 3;
-
-    let cell_size = 3;
-
-    let mut grid = Grid::<Cell>::new(w * cell_size, h * cell_size);
-
-    let mut x = 0;
-    let mut y = 0;
-    for ty in (min_y - 1)..(max_y + 2) {
-        for tx in (min_x - 1)..(max_x + 2) {
-            grid.fill(x, y, cell_size, cell_size, || {
-                let tile;
-                match *template.get(tx, ty).unwrap() {
-                    generator::Tile::Floor => {
-                        tile = Tile::Floor;
-                    },
-                    generator::Tile::Wall => {
-                        tile = Tile::Solid;
-                    }
-                }
-                Cell::new(tile)
-            });
-            x += cell_size;
-        }
-        x = 0;
-        y += cell_size;
-    }
-
-    // "autotile"
-    for y in 0..grid.height {
-        for x in 0..grid.width {
-            let mut below_is_floor = false;
-            {
-                let below = grid.get(x, y + 1);
-                if below.is_some() && below.unwrap().tile == Tile::Floor {
-                    below_is_floor = true;
-                }
-            }
-
-            let mut cell = grid.get_mut(x, y).unwrap();
-            if cell.tile == Tile::Solid && below_is_floor {
-                cell.tile = Tile::Wall;
-            }
-
-        }
-    }
-
-    println!("generated tiles");
-    grid
-}
 
 
 impl motor::MotorApp for App {
@@ -240,7 +157,12 @@ impl motor::MotorApp for App {
         let world = self.world.as_mut().unwrap();
 
         if context.keyboard.is_key_pressed(Keycode::R) {
-            let grid = make_grid(100, 100);
+            let level = levelgenerator::make_level(100, 100);
+            {
+                world.actors[0].get_entity_mut().set_position(level.start_tile.0 as f64 * 8f64, level.start_tile.1 as f64 * 8f64);
+            }
+
+            let grid = level.grid;
             self.camera.set_world_size(grid.width * 8, grid.height * 8);
             world.init(grid);
         }
