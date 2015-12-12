@@ -46,6 +46,8 @@ pub fn make_level(width : u32, height : u32) -> Level {
     let w = max_x - min_x + 3;
     let h = max_y - min_y + 3;
 
+    println!("{:?} {:?} {:?} {:?} ", w, h, min_x, min_y);
+
     let cell_size = 3;
 
     let mut grid = Grid::<Cell>::new(w * cell_size, h * cell_size);
@@ -93,6 +95,6 @@ pub fn make_level(width : u32, height : u32) -> Level {
 
     Level {
         grid : grid,
-        start_tile : (level.start.0 * cell_size, level.start.1 * cell_size)
+        start_tile : ( (level.start.0 - min_x ) * cell_size, (level.start.1 - min_y) * cell_size)
     }
 }

@@ -260,12 +260,13 @@ pub fn make_level(width : u32, height : u32) -> LevelTemplate {
         let chance_to_spawn_new_floor_maker = (floor_makers.len() * 10) as u32;
 
         for floor_maker in floor_makers.iter_mut() {
-            floor_maker.step();
 
             if place_floor(floor_maker.x, floor_maker.y, &mut grid) {
                 floor_count += 1;
                 floor_count += place_room(make_room_config.random_room_type(), floor_maker.x, floor_maker.y, &mut grid);
             }
+
+            floor_maker.step();
 
             // spawn new
             if rand::thread_rng().gen_weighted_bool(chance_to_spawn_new_floor_maker) {

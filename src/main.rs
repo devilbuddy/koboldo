@@ -80,15 +80,12 @@ impl Actor for Player {
     }
 }
 
-
-
 struct Assets {
     tile_set : TileSet,
     font : BitmapFont,
     monster_texture : TextureReference,
     nine_patch : NinePatch
 }
-
 
 struct App {
     state_time : f64,
@@ -109,9 +106,6 @@ impl App {
         }
     }
 }
-
-
-
 
 impl motor::MotorApp for App {
     fn init(&mut self, context : &mut motor::MotorContext) {
@@ -159,7 +153,9 @@ impl motor::MotorApp for App {
         if context.keyboard.is_key_pressed(Keycode::R) {
             let level = levelgenerator::make_level(100, 100);
             {
-                world.actors[0].get_entity_mut().set_position(level.start_tile.0 as f64 * 8f64, level.start_tile.1 as f64 * 8f64);
+                let start_position = (level.start_tile.0 as f64 * 8f64, level.start_tile.1 as f64 * 8f64);
+                println!("{:?} {:?}", start_position.0, start_position.1);
+                world.actors[0].get_entity_mut().set_position(start_position.0, start_position.1);
             }
 
             let grid = level.grid;
