@@ -52,8 +52,7 @@ impl Animation {
 pub struct SpriteBuilder {
     texture : Rc<RefCell<Texture>>,
     texture_region : Option<TextureRegion>,
-    animation : Option<Animation>,
-    pub position : (f64, f64)
+    animation : Option<Animation>
 }
 
 impl SpriteBuilder {
@@ -61,8 +60,7 @@ impl SpriteBuilder {
         SpriteBuilder {
             texture : texture,
             texture_region : None,
-            animation : None,
-            position : (0f64, 0f64)
+            animation : None
         }
     }
     pub fn texture_region(mut self, texture_region : TextureRegion) -> SpriteBuilder {
@@ -71,10 +69,6 @@ impl SpriteBuilder {
     }
     pub fn animation(mut self, animation : Animation) -> SpriteBuilder {
         self.animation = Some(animation);
-        self
-    }
-    pub fn position(mut self, position : (f64, f64)) -> SpriteBuilder {
-        self.position = position;
         self
     }
     pub fn build(self) -> Sprite {
@@ -86,8 +80,7 @@ impl SpriteBuilder {
             texture_region : self.texture_region,
             animation : self.animation,
             state_time : 0f64,
-            color : (255, 255, 255),
-            position : self.position
+            color : (255, 255, 255)
         }
     }
 }
@@ -97,25 +90,12 @@ pub struct Sprite {
     texture_region : Option<TextureRegion>,
     animation : Option<Animation>,
     state_time : f64,
-    pub color : (u8, u8, u8),
-    pub position : (f64, f64)
+    pub color : (u8, u8, u8)
 }
 
 impl Sprite {
     pub fn update(&mut self, delta_time : f64) {
         self.state_time += delta_time;
-    }
-
-    pub fn render(&self, renderer : &mut Renderer) {
-        let mut t = self.texture.borrow_mut();
-        t.set_color_mod(self.color.0, self.color.1, self.color.2);
-        let p = (self.position.0 as i32, self.position.1 as i32);
-        if self.animation.is_some() {
-            let texture_region = self.animation.as_ref().unwrap().get_texture_region(self.state_time);
-            render_region(renderer, &t, texture_region, p);
-        } else {
-            render_region(renderer, &t, self.texture_region.as_ref().unwrap(), p);
-        }
     }
 
     pub fn render_at(&self, x : f64, y: f64, renderer : &mut Renderer) {

@@ -64,7 +64,6 @@ impl Actor for Player {
         }
 
         world::do_collision_check(&mut self.entity, grid);
-        self.sprite.position = (self.entity.position.x, self.entity.position.y);
     }
     fn is_alive(&self) -> bool {
         self.alive
