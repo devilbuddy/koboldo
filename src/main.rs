@@ -63,7 +63,7 @@ impl Actor for Player {
             self.alive = false;
         }
 
-        world::do_collision_check(&mut self.entity, grid);
+        world::move_entity(&mut self.entity, grid);
     }
     fn is_alive(&self) -> bool {
         self.alive
@@ -153,7 +153,7 @@ impl motor::MotorApp for App {
             let level = levelgenerator::make_level(100, 100);
             {
                 let start_position = (level.start_tile.0 as f64 * 8f64, level.start_tile.1 as f64 * 8f64);
-                println!("{:?} {:?}", start_position.0, start_position.1);
+                println!("start: {:?} {:?}", start_position.0, start_position.1);
                 world.actors[0].get_entity_mut().set_position(start_position.0, start_position.1);
             }
 

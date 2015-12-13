@@ -52,10 +52,19 @@ pub fn make_level(width : u32, height : u32) -> Level {
 
     let mut grid = Grid::<Cell>::new(w * cell_size, h * cell_size);
 
+    let mut start = (0, 0);
+
     let mut x = 0;
     let mut y = 0;
     for ty in (min_y - 1)..(max_y + 2) {
         for tx in (min_x - 1)..(max_x + 2) {
+
+
+            if tx == level.start.0 && ty == level.start.1 {
+                println!("whoot");
+                start = (x, y);
+            }
+
             grid.fill(x, y, cell_size, cell_size, || {
                 let tile;
                 match *template.get(tx, ty).unwrap() {
@@ -95,6 +104,6 @@ pub fn make_level(width : u32, height : u32) -> Level {
 
     Level {
         grid : grid,
-        start_tile : ( (level.start.0 - min_x ) * cell_size, (level.start.1 - min_y) * cell_size)
+        start_tile : start
     }
 }

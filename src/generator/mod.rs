@@ -248,7 +248,7 @@ pub fn make_level(width : u32, height : u32) -> LevelTemplate {
     let make_room_config = MakeRoomConfig::new(10, 10);
     let mut floor_makers = Vec::<FloorMaker>::new();
 
-    let start = (50, 50);
+    let start = (width/2, height/2);
 
     floor_makers.push(FloorMaker::new(start.0, start.1));
 

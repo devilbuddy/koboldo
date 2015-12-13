@@ -119,7 +119,7 @@ impl CollisionData {
 }
 
 
-pub fn do_collision_check(entity : &mut Entity, grid : &grid::Grid<Cell>) {
+pub fn move_entity(entity : &mut Entity, grid : &grid::Grid<Cell>) {
     let size = 8f64;
     let mut player_rect = Rectangle::new(entity.position.x, entity.position.y , size, size);
 
