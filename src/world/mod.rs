@@ -120,7 +120,10 @@ impl CollisionData {
 }
 
 
-pub fn move_entity(entity : &mut Entity, grid : &grid::Grid<Cell>) {
+pub fn move_entity(entity : &mut Entity, grid : &grid::Grid<Cell>) -> bool {
+
+    let mut collision = false;
+
     let size = 8f64;
     let mut player_rect = Rectangle::new(entity.position.x, entity.position.y , size, size);
 
@@ -142,6 +145,7 @@ pub fn move_entity(entity : &mut Entity, grid : &grid::Grid<Cell>) {
     'x_loop: for i in 0..entity.collision_data.count {
         if player_rect.overlaps(&entity.collision_data.rects[i]) {
             entity.velocity.x = 0f64;
+            collision = true;
             break 'x_loop;
         }
     }
@@ -160,18 +164,17 @@ pub fn move_entity(entity : &mut Entity, grid : &grid::Grid<Cell>) {
     'y_loop: for i in 0..entity.collision_data.count {
         if player_rect.overlaps(&entity.collision_data.rects[i]) {
             entity.velocity.y = 0f64;
+            collision = true;
             break 'y_loop;
         }
     }
     entity.position = entity.position.add(entity.velocity);
 
-    let friction = 0.7f64;
-    entity.velocity = entity.velocity.mul(friction);
+    collision    
 }
 
 fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, grid : &grid::Grid<Cell>, collision_data : &mut CollisionData) {
     let size = 8f64;
-
     collision_data.reset();
 
     for y in start_y..(end_y + 1) {
@@ -191,8 +194,13 @@ fn get_collision_tiles(start_x : u32, end_x : u32, start_y : u32, end_y : u32, g
     }
 }
 
+pub enum Action {
+    None,
+    Fire {x: f64, y : f64, velocity_x : f64, velocity_y : f64}
+}
+
 pub trait Actor {
-    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &grid::Grid<Cell>);
+    fn update(&mut self, context : &mut MotorContext, delta_time : f64,  grid : &grid::Grid<Cell>) -> Action;
     fn is_alive(&self) -> bool;
     fn get_entity(&self) -> &Entity;
     fn get_entity_mut(&mut self) -> &mut Entity;
@@ -216,10 +224,14 @@ impl World {
         self.grid = Some(grid);
     }
 
-    pub fn update(&mut self, context : &mut MotorContext, delta_time : f64) {
+    pub fn update(&mut self, context : &mut MotorContext, delta_time : f64, actions : &mut Vec<Action>) {
         if self.grid.is_some() {
             for actor in self.actors.iter_mut() {
-                actor.update(context, delta_time, self.grid.as_ref().unwrap());
+                let action = actor.update(context, delta_time, self.grid.as_ref().unwrap());
+                match action {
+                    Action::None => {},
+                    _ => { actions.push(action); }
+                }
             }
         }
         self.actors.retain(|ref a| a.is_alive());

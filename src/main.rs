@@ -3,6 +3,8 @@ extern crate sdl2_image;
 extern crate rand;
 extern crate nalgebra as na;
 
+use std::ops::{Add, Mul};
+
 use std::path::Path;
 
 use sdl2::pixels::Color;
@@ -25,6 +27,45 @@ use world::*;
 use camera::*;
 use render::TileSet;
 
+struct Bullet {
+    entity : Entity,
+    sprite : Sprite,
+    alive : bool
+}
+
+impl Bullet {
+    pub fn new(sprite : Sprite) -> Bullet {
+        Bullet {
+            entity : Entity::new(),
+            sprite : sprite,
+            alive : true
+        }
+    }
+}
+
+impl Actor for Bullet {
+    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) -> Action {
+        self.sprite.update(delta_time);
+        let collision = world::move_entity(&mut self.entity, grid);
+        if collision {
+            self.alive = false;
+        }
+        Action::None
+    }
+    fn is_alive(&self) -> bool {
+        self.alive
+    }
+    fn get_entity(&self) -> &Entity {
+        &self.entity
+    }
+    fn get_entity_mut(&mut self) -> &mut Entity {
+        &mut self.entity
+    }
+    fn get_sprite(&self) -> &Sprite {
+        &self.sprite
+    }
+}
+
 struct Player {
     entity : Entity,
     sprite : Sprite,
@@ -42,7 +83,9 @@ impl Player {
 }
 
 impl Actor for Player {
-    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) {
+    fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) -> Action {
+
+        let mut action = Action::None;
 
         self.sprite.update(delta_time);
 
@@ -62,8 +105,23 @@ impl Actor for Player {
         if context.keyboard.is_key_pressed(Keycode::K) {
             self.alive = false;
         }
-
         world::move_entity(&mut self.entity, grid);
+
+
+        let friction = 0.7f64;
+        self.entity.velocity = self.entity.velocity.mul(friction);
+
+
+        if context.keyboard.is_key_pressed(Keycode::Space) {
+            action = Action::Fire {
+                        x: self.entity.position.x,
+                        y: self.entity.position.y,
+                        velocity_x: self.entity.velocity.x * 2f64,
+                        velocity_y: self.entity.velocity.y * 2f64
+                    };
+        }
+
+        return action;
     }
     fn is_alive(&self) -> bool {
         self.alive
@@ -170,7 +228,36 @@ impl motor::MotorApp for App {
             self.controller_id = context.joystick.get_controller_id();
         }
 
-        world.update(context, delta_time);
+        let mut actions = Vec::new();
+        world.update(context, delta_time, &mut actions);
+        for action in actions.iter() {
+            match *action {
+                Action::Fire { x, y, velocity_x, velocity_y } => {
+                    let bullet_sprite = SpriteBuilder::new(assets.monster_texture.clone())
+                                .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
+                                .build();
+
+                    let mut bullet = Bullet::new(bullet_sprite);
+                    bullet.entity.position.x = x;
+                    bullet.entity.position.y = y;
+                    bullet.entity.velocity.x = velocity_x;
+                    bullet.entity.velocity.y = velocity_y;
+
+                    world.actors.push(Box::new(bullet));
+
+                },
+                _ => {}
+            }
+            /*
+            match action {
+                Action::Fire {x:x, y:y, velocity_x:velocity_x, velocity_y:velocity_y } => {
+
+                },
+                _ => {}
+            }
+            */
+        }
+        actions.clear();
 
         let p = &world.actors[0];
         let pos = p.get_entity().position;
