@@ -62,7 +62,9 @@ pub fn make_level(width : u32, height : u32) -> Level {
 
             if tx == level.start.0 && ty == level.start.1 {
                 println!("whoot");
-                start = (x, y);
+                start = (x,  y);
+
+                println!("whoot {:?}", start);
             }
 
             grid.fill(x, y, cell_size, cell_size, || {

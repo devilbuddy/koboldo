@@ -59,6 +59,7 @@ impl Entity {
     }
 
     pub fn set_position(&mut self, x : f64, y: f64) {
+        println!("set_position {:?} {:?}", x, y);
         self.position.x = x;
         self.position.y = y;
     }
@@ -213,7 +214,6 @@ impl World {
 
     pub fn init(&mut self, grid : grid::Grid<Cell>) {
         self.grid = Some(grid);
-        self.actors[0].get_entity_mut().set_position(100f64, 100f64);
     }
 
     pub fn update(&mut self, context : &mut MotorContext, delta_time : f64) {
