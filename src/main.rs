@@ -3,6 +3,7 @@ extern crate sdl2_image;
 extern crate rand;
 extern crate nalgebra as na;
 
+use na::Norm;
 use std::ops::{Add, Mul};
 
 use std::path::Path;
@@ -36,7 +37,7 @@ struct Bullet {
 impl Bullet {
     pub fn new(sprite : Sprite) -> Bullet {
         Bullet {
-            entity : Entity::new(),
+            entity : Entity::new(3f64, 3f64),
             sprite : sprite,
             alive : true
         }
@@ -75,7 +76,7 @@ struct Player {
 impl Player {
     pub fn new(sprite : Sprite) -> Player {
         Player {
-            entity : Entity::new(),
+            entity : Entity::new(8f64, 8f64),
             sprite : sprite,
             alive : true
         }
@@ -113,11 +114,14 @@ impl Actor for Player {
 
 
         if context.keyboard.is_key_pressed(Keycode::Space) {
+
+            let bullet_velocity = self.entity.velocity.normalize().mul(2f64);
+
             action = Action::Fire {
                         x: self.entity.position.x,
                         y: self.entity.position.y,
-                        velocity_x: self.entity.velocity.x * 2f64,
-                        velocity_y: self.entity.velocity.y * 2f64
+                        velocity_x: bullet_velocity.x * 2f64,
+                        velocity_y: bullet_velocity.y * 2f64
                     };
         }
 
@@ -152,6 +156,20 @@ struct App {
     world : Option<World>
 }
 
+fn make_bullet(assets : &Assets, x : f64, y: f64, velocity_x: f64, velocity_y : f64) -> Bullet {
+    let bullet_sprite = SpriteBuilder::new(assets.monster_texture.clone())
+                .texture_region(TextureRegion::new(0, 0, 3, 3))
+                .build();
+
+    let mut bullet = Bullet::new(bullet_sprite);
+    bullet.entity.position.x = x;
+    bullet.entity.position.y = y;
+    bullet.entity.velocity.x = velocity_x;
+    bullet.entity.velocity.y = velocity_y;
+
+    bullet
+}
+
 impl App {
     pub fn new(display_size : (u32, u32)) -> App {
         App {
@@ -162,6 +180,9 @@ impl App {
             world : None
         }
     }
+
+
+
 }
 
 impl motor::MotorApp for App {
@@ -233,29 +254,11 @@ impl motor::MotorApp for App {
         for action in actions.iter() {
             match *action {
                 Action::Fire { x, y, velocity_x, velocity_y } => {
-                    let bullet_sprite = SpriteBuilder::new(assets.monster_texture.clone())
-                                .animation(Animation::new(0.5f64, vec![TextureRegion::new(0, 0, 8, 8), TextureRegion::new(0, 8, 8, 8)]))
-                                .build();
-
-                    let mut bullet = Bullet::new(bullet_sprite);
-                    bullet.entity.position.x = x;
-                    bullet.entity.position.y = y;
-                    bullet.entity.velocity.x = velocity_x;
-                    bullet.entity.velocity.y = velocity_y;
-
+                    let bullet = make_bullet(&assets, x, y, velocity_x, velocity_y);
                     world.actors.push(Box::new(bullet));
-
                 },
                 _ => {}
             }
-            /*
-            match action {
-                Action::Fire {x:x, y:y, velocity_x:velocity_x, velocity_y:velocity_y } => {
-
-                },
-                _ => {}
-            }
-            */
         }
         actions.clear();
 
