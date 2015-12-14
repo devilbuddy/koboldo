@@ -33,11 +33,12 @@ struct Bullet {
     sprite : Sprite,
     alive : bool
 }
+const BULLET_SIZE : f64 = 3f64;
 
 impl Bullet {
     pub fn new(sprite : Sprite) -> Bullet {
         Bullet {
-            entity : Entity::new(3f64, 3f64),
+            entity : Entity::new(BULLET_SIZE, BULLET_SIZE),
             sprite : sprite,
             alive : true
         }
@@ -67,10 +68,15 @@ impl Actor for Bullet {
     }
 }
 
+
+const FIRE_INTERVAL : f64 = 0.1f64;
+
+
 struct Player {
     entity : Entity,
     sprite : Sprite,
-    alive : bool
+    alive : bool,
+    fire_cooldown : f64
 }
 
 impl Player {
@@ -78,7 +84,8 @@ impl Player {
         Player {
             entity : Entity::new(8f64, 8f64),
             sprite : sprite,
-            alive : true
+            alive : true,
+            fire_cooldown : 0f64
         }
     }
 }
@@ -113,16 +120,25 @@ impl Actor for Player {
         self.entity.velocity = self.entity.velocity.mul(friction);
 
 
+        self.fire_cooldown = self.fire_cooldown - delta_time;
+
+
         if context.keyboard.is_key_pressed(Keycode::Space) {
 
-            let bullet_velocity = self.entity.velocity.normalize().mul(2f64);
+            if self.fire_cooldown < 0f64 {
+                let bullet_velocity = self.entity.velocity.normalize().mul(2f64);
 
-            action = Action::Fire {
-                        x: self.entity.position.x,
-                        y: self.entity.position.y,
-                        velocity_x: bullet_velocity.x * 2f64,
-                        velocity_y: bullet_velocity.y * 2f64
-                    };
+                action = Action::Fire {
+                            x: self.entity.position.x,
+                            y: self.entity.position.y,
+                            velocity_x: bullet_velocity.x * 2f64,
+                            velocity_y: bullet_velocity.y * 2f64
+                        };
+
+                self.fire_cooldown = FIRE_INTERVAL;    
+            }
+
+
         }
 
         return action;
@@ -158,7 +174,7 @@ struct App {
 
 fn make_bullet(assets : &Assets, x : f64, y: f64, velocity_x: f64, velocity_y : f64) -> Bullet {
     let bullet_sprite = SpriteBuilder::new(assets.monster_texture.clone())
-                .texture_region(TextureRegion::new(0, 0, 3, 3))
+                .texture_region(TextureRegion::new(11, 2, BULLET_SIZE as u32, BULLET_SIZE as u32))
                 .build();
 
     let mut bullet = Bullet::new(bullet_sprite);
