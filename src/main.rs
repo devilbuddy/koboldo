@@ -33,7 +33,7 @@ struct Bullet {
     sprite : Sprite,
     alive : bool
 }
-const BULLET_SIZE : f64 = 3f64;
+const BULLET_SIZE : f64 = 2f64;
 
 impl Bullet {
     pub fn new(sprite : Sprite) -> Bullet {
@@ -48,7 +48,7 @@ impl Bullet {
 impl Actor for Bullet {
     fn update(&mut self, context : &mut motor::MotorContext, delta_time : f64, grid : &Grid<Cell>) -> Action {
         self.sprite.update(delta_time);
-        let collision = world::move_entity(&mut self.entity, grid);
+        let collision = world::move_entity(&mut self.entity, delta_time, grid);
         if collision {
             self.alive = false;
         }
@@ -82,7 +82,7 @@ struct Player {
 impl Player {
     pub fn new(sprite : Sprite) -> Player {
         Player {
-            entity : Entity::new(8f64, 8f64),
+            entity : Entity::new(7f64, 7f64),
             sprite : sprite,
             alive : true,
             fire_cooldown : 0f64
@@ -113,7 +113,7 @@ impl Actor for Player {
         if context.keyboard.is_key_pressed(Keycode::K) {
             self.alive = false;
         }
-        world::move_entity(&mut self.entity, grid);
+        world::move_entity(&mut self.entity, delta_time, grid);
 
 
         let friction = 0.7f64;
@@ -126,16 +126,16 @@ impl Actor for Player {
         if context.keyboard.is_key_pressed(Keycode::Space) {
 
             if self.fire_cooldown < 0f64 {
-                let bullet_velocity = self.entity.velocity.normalize().mul(2f64);
+                let bullet_velocity = self.entity.velocity.normalize().mul(1f64);
 
                 action = Action::Fire {
-                            x: self.entity.position.x,
-                            y: self.entity.position.y,
+                            x: self.entity.position.x + self.entity.width /2f64 - BULLET_SIZE/2f64,
+                            y: self.entity.position.y + self.entity.height /2f64 - BULLET_SIZE/2f64,
                             velocity_x: bullet_velocity.x * 2f64,
                             velocity_y: bullet_velocity.y * 2f64
                         };
 
-                self.fire_cooldown = FIRE_INTERVAL;    
+                self.fire_cooldown = FIRE_INTERVAL;
             }
 
 

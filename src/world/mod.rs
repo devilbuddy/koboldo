@@ -124,49 +124,52 @@ impl CollisionData {
 }
 
 
-pub fn move_entity(entity : &mut Entity, grid : &grid::Grid<Cell>) -> bool {
+pub fn move_entity(entity : &mut Entity, delta_time : f64, grid : &grid::Grid<Cell>) -> bool {
 
     let mut collision = false;
 
     let tile_size = 8f64;
-    let mut player_rect = Rectangle::new(entity.position.x, entity.position.y , entity.width, entity.height);
+    let mut entity_rect = Rectangle::new(entity.position.x, entity.position.y , entity.width, entity.height);
+
+    let vx = entity.velocity.x * delta_time;
+    let vy = entity.velocity.y * delta_time;
 
     let mut start_x;
     let mut end_x;
     let mut start_y;
     let mut end_y;
     if entity.velocity.x > 0f64 {
-        start_x = ((player_rect.x + player_rect.w + entity.velocity.x)/tile_size) as u32;
+        start_x = ((entity_rect.x + entity_rect.w + entity.velocity.x)/tile_size) as u32;
         end_x = start_x;
     } else {
-        start_x = ((player_rect.x + entity.velocity.x)/tile_size) as u32;
+        start_x = ((entity_rect.x + entity.velocity.x)/tile_size) as u32;
         end_x = start_x;
     }
-    start_y = (player_rect.y / tile_size) as u32;
-    end_y = ((player_rect.y + player_rect.w) / tile_size) as u32;
+    start_y = (entity_rect.y / tile_size) as u32;
+    end_y = ((entity_rect.y + entity_rect.w) / tile_size) as u32;
     get_collision_tiles(start_x, end_x, start_y, end_y, grid, &mut entity.collision_data);
-    player_rect.x += entity.velocity.x;
+    entity_rect.x += entity.velocity.x;
     'x_loop: for i in 0..entity.collision_data.count {
-        if player_rect.overlaps(&entity.collision_data.rects[i]) {
+        if entity_rect.overlaps(&entity.collision_data.rects[i]) {
             entity.velocity.x = 0f64;
             collision = true;
             break 'x_loop;
         }
     }
-    player_rect.x = entity.position.x;
+    entity_rect.x = entity.position.x;
 
     if entity.velocity.y > 0f64 {
-        start_y = ((player_rect.y + player_rect.h + entity.velocity.y)/tile_size) as u32;
+        start_y = ((entity_rect.y + entity_rect.h + entity.velocity.y)/tile_size) as u32;
         end_y = start_y;
     } else {
-        start_y = ((player_rect.y + entity.velocity.y)/tile_size) as u32;
+        start_y = ((entity_rect.y + entity.velocity.y)/tile_size) as u32;
     }
-    start_x = (player_rect.x / tile_size) as u32;
-    end_x = ((player_rect.x + player_rect.w) / tile_size) as u32;
+    start_x = (entity_rect.x / tile_size) as u32;
+    end_x = ((entity_rect.x + entity_rect.w) / tile_size) as u32;
     get_collision_tiles(start_x, end_x, start_y, end_y, grid, &mut entity.collision_data);
-    player_rect.y += entity.velocity.y;
+    entity_rect.y += entity.velocity.y;
     'y_loop: for i in 0..entity.collision_data.count {
-        if player_rect.overlaps(&entity.collision_data.rects[i]) {
+        if entity_rect.overlaps(&entity.collision_data.rects[i]) {
             entity.velocity.y = 0f64;
             collision = true;
             break 'y_loop;
