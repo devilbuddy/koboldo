@@ -131,8 +131,7 @@ pub fn move_entity(entity : &mut Entity, delta_time : f64, grid : &grid::Grid<Ce
     let tile_size = 8f64;
     let mut entity_rect = Rectangle::new(entity.position.x, entity.position.y , entity.width, entity.height);
 
-    let vx = entity.velocity.x * delta_time;
-    let vy = entity.velocity.y * delta_time;
+    entity.velocity = entity.velocity.mul(delta_time);
 
     let mut start_x;
     let mut end_x;
@@ -176,7 +175,7 @@ pub fn move_entity(entity : &mut Entity, delta_time : f64, grid : &grid::Grid<Ce
         }
     }
     entity.position = entity.position.add(entity.velocity);
-
+    entity.velocity = entity.velocity.mul(1f64 / delta_time);
     collision
 }
 

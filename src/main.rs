@@ -97,7 +97,7 @@ impl Actor for Player {
 
         self.sprite.update(delta_time);
 
-        let acceleration = 0.5f64;
+        let acceleration = 10f64;
         if context.keyboard.is_key_pressed(Keycode::Left) {
             self.entity.velocity.x -= acceleration;
         }
@@ -116,7 +116,7 @@ impl Actor for Player {
         world::move_entity(&mut self.entity, delta_time, grid);
 
 
-        let friction = 0.7f64;
+        let friction = 0.87f64;
         self.entity.velocity = self.entity.velocity.mul(friction);
 
 
@@ -126,7 +126,7 @@ impl Actor for Player {
         if context.keyboard.is_key_pressed(Keycode::Space) {
 
             if self.fire_cooldown < 0f64 {
-                let bullet_velocity = self.entity.velocity.normalize().mul(1f64);
+                let bullet_velocity = self.entity.velocity.normalize().mul(40f64);
 
                 action = Action::Fire {
                             x: self.entity.position.x + self.entity.width /2f64 - BULLET_SIZE/2f64,
