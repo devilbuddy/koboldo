@@ -12,6 +12,8 @@ use sdl2::{EventPump, GameControllerSubsystem};
 use sdl2::event::Event;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::{INIT_PNG, LoadTexture};
+use sdl2::rect::Rect;
+use sdl2::pixels::Color;
 
 use std::path::Path;
 use std::rc::Rc;
@@ -24,7 +26,8 @@ pub struct MotorContext<'window> {
     event_pump : EventPump,
     pub keyboard : keyboard::MotorKeyboard,
     pub joystick : joystick::MotorJoystick,
-    pub mouse : mouse::MotorMouse
+    pub mouse : mouse::MotorMouse,
+    pub draw_debug_boxes : bool
 }
 
 impl<'window> MotorContext<'window> {
@@ -36,7 +39,8 @@ impl<'window> MotorContext<'window> {
             event_pump : event_pump,
             keyboard : keyboard::MotorKeyboard::new(),
             joystick : joystick::MotorJoystick::new(game_controller_subsystem),
-            mouse : mouse::MotorMouse::new()
+            mouse : mouse::MotorMouse::new(),
+            draw_debug_boxes : false
         }
     }
 
@@ -58,6 +62,7 @@ pub trait MotorGraphics {
     fn render(&mut self, texture: &sdl2::render::Texture, texture_region : &gfx::TextureRegion, position : (i32, i32));
     fn render_sprite_at(&mut self, sprite : &gfx::Sprite, x : f64, y : f64) ;
     fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32);
+    fn draw_rect(&mut self, x : f64, y : f64, w : f64, h: f64);
 }
 
 impl<'window> MotorGraphics for MotorContext<'window> {
@@ -83,6 +88,12 @@ impl<'window> MotorGraphics for MotorContext<'window> {
 
     fn render_nine_patch(&mut self, nine_patch : &gfx::NinePatch, x: i32, y : i32, w: u32, h : u32) {
         nine_patch.render((x, y, w, h), &mut self.renderer);
+    }
+
+    fn draw_rect(&mut self, x : f64, y : f64, w : f64, h: f64) {
+        self.renderer.set_draw_color(Color::RGB(255, 0, 255)) ;
+        let rect = Rect::new_unwrap(x as i32, y as i32, w as u32, h as u32);
+        self.renderer.draw_rect(rect);
     }
 }
 

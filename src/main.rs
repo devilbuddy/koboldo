@@ -82,7 +82,7 @@ struct Player {
 impl Player {
     pub fn new(sprite : Sprite) -> Player {
         Player {
-            entity : Entity::new(7f64, 7f64),
+            entity : Entity::new(8f64, 8f64),
             sprite : sprite,
             alive : true,
             fire_cooldown : 0f64
@@ -112,6 +112,9 @@ impl Actor for Player {
         }
         if context.keyboard.is_key_pressed(Keycode::K) {
             self.alive = false;
+        }
+        if context.keyboard.is_key_pressed(Keycode::D) {
+            context.draw_debug_boxes = !context.draw_debug_boxes;
         }
         world::move_entity(&mut self.entity, delta_time, grid);
 
@@ -258,7 +261,7 @@ impl motor::MotorApp for App {
         }
 
         if world.grid.is_some() {
-            render::render_grid(context, &world, &assets.tile_set, &self.camera);
+            render::render_world(context, &world, &assets.tile_set, &self.camera);
         }
 
         if self.controller_id.is_none() {

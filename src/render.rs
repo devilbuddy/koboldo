@@ -33,7 +33,7 @@ impl TileSet {
 }
 
 
-pub fn render_grid(context : &mut MotorContext, world: &World, tile_set : &TileSet, camera : &Camera) {
+pub fn render_world(context : &mut MotorContext, world: &World, tile_set : &TileSet, camera : &Camera) {
 
     let grid = world.grid.as_ref().unwrap();
     let actors = &world.actors;
@@ -72,6 +72,10 @@ pub fn render_grid(context : &mut MotorContext, world: &World, tile_set : &TileS
         let x = position.x - offset_x;
         let y = position.y - offset_y;
         context.render_sprite_at(actor.get_sprite(), x, y);
+
+        if context.draw_debug_boxes {
+            context.draw_rect(x, y, actor.get_entity().width, actor.get_entity().height);
+        }
     }
 
 }
